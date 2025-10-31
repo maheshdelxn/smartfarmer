@@ -4,6 +4,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons"; // ✅ Icons
 
 import HomeScreen from "../src/screens/Home/HomeScreen";
+import CropDetailsScreen from "../src/screens/Home/add_crop"
 import CropScreen from "../src/screens/Crop/CropScreen";
 import ProfileScreen from "../src/screens/Profile/ProfileScreen";
 
@@ -16,6 +17,7 @@ function HomeStackScreen() {
   return (
     <HomeStack.Navigator screenOptions={{ headerShown: false }}>
       <HomeStack.Screen name="HomeMain" component={HomeScreen} />
+      <HomeStack.Screen name="Crop Details" component={CropDetailsScreen}/>
     </HomeStack.Navigator>
   );
 }
