@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import AuthService from '../../services/AuthService';
+
 
 
 const { width: screenWidth } = Dimensions.get('window');

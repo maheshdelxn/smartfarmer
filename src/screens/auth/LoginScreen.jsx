@@ -1,3 +1,5 @@
+// C:\Users\ADMIN\Desktop\SM-MOBILE\smartfarmer\src\screens\auth\LoginScreen.jsx
+
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
@@ -5,17 +7,26 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
+  StyleSheet,
   Alert,
   ActivityIndicator,
   Animated,
   Dimensions,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Feather } from '@expo/vector-icons';
-import ApiService from '../../services/ApiService';
-import AuthService from '../../services/AuthService';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
-// Updated TextInputField with Tailwind CSS
+const AppTheme = {
+  primaryColor: '#2E7D32',
+  backgroundColor: '#FFFFFF',
+  textPrimaryColor: '#000000',
+  textSecondaryColor: '#666666',
+  successColor: '#4CAF50',
+  errorColor: '#F44336',
+  infoColor: '#2196F3',
+};
+
+// Updated TextInputField with proper keyboard handling
 const TextInputField = ({
   label,
   value,
@@ -32,15 +43,16 @@ const TextInputField = ({
   blurOnSubmit = true
 }) => {
   return (
-    <View className="mb-4">
-      <Text className="text-sm font-medium text-gray-900 mb-2">{label}</Text>
-      <View className="flex-row items-center border border-gray-300 rounded-xl bg-white">
-        <View className="p-3">
-          <Feather name={icon} size={20} color="#2E7D32" />
-        </View>
+    <View style={styles.inputContainer}>
+      <Text style={styles.inputLabel}>{label}</Text>
+      <View style={styles.inputWrapper}>
+        <Icon name={icon} size={20} color={AppTheme.primaryColor} style={styles.inputIcon} />
         <TextInput
           ref={inputRef}
-          className={`flex-1 p-3 text-base text-gray-900 ${!editable && 'bg-gray-100 text-gray-600'}`}
+          style={[
+            styles.textInput,
+            !editable && styles.disabledInput
+          ]}
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
@@ -62,9 +74,7 @@ const LoginScreen = () => {
   const navigation = useNavigation();
   
   const [mobileNumber, setMobileNumber] = useState('');
-  const [otp, setOtp] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [showOTPField, setShowOTPField] = useState(false);
   
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
@@ -74,7 +84,6 @@ const LoginScreen = () => {
 
   // Refs for text inputs
   const mobileInputRef = useRef(null);
-  const otpInputRef = useRef(null);
 
   useEffect(() => {
     Animated.parallel([
@@ -91,67 +100,32 @@ const LoginScreen = () => {
     ]).start();
   }, []);
 
-  // Auto-focus OTP field when it becomes visible
-  useEffect(() => {
-    if (showOTPField && otpInputRef.current) {
-      setTimeout(() => {
-        otpInputRef.current?.focus();
-      }, 300);
-    }
-  }, [showOTPField]);
-
-  // Step 1: Check if mobile number exists in database
-  const checkMobileNumber = async () => {
+  // Navigate to OTP screen with mobile number
+  const navigateToOTP = async () => {
     if (!mobileNumber || mobileNumber.length !== 10) {
       Alert.alert('Error', 'Please enter a valid 10-digit mobile number');
-      navigation.navigate("OTPVerification")
       return;
     }
 
-    
-
-    
-  };
-
-  // Step 2: Verify OTP and login
-  const verifyOTPAndLogin = async () => {
-    if (!otp || otp.length !== 6) {
-      Alert.alert('Error', 'Please enter a valid 6-digit OTP');
-      return;
-    }
- 
     setIsLoading(true);
 
     try {
-      console.log('Verifying OTP for:', mobileNumber);
+      console.log('Navigating to OTP screen for:', mobileNumber);
       
-      const loginResult = await ApiService.verifyOTP(mobileNumber, otp);
-
-      if (loginResult.success) {
-        // Save user data to local storage
-        await AuthService.saveUserData(loginResult.user);
-        
-        Alert.alert('Success', loginResult.message);
-        
-        // Navigate to main app
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'MainApp' }],
-        });
-      } else {
-        Alert.alert('Error', loginResult.message || 'Login failed');
-      }
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Navigate to OTP screen with mobile number
+      navigation.navigate('OTPVerification', { 
+        mobileNumber: mobileNumber 
+      });
+      
     } catch (error) {
-      console.error('Login error:', error);
-      Alert.alert('Error', error.message || 'Login failed. Please try again.');
+      console.error('Navigation error:', error);
+      Alert.alert('Error', 'Failed to proceed. Please try again.');
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const goBackToMobile = () => {
-    setShowOTPField(false);
-    setOtp('');
   };
 
   const handleSignUp = () => {
@@ -159,15 +133,15 @@ const LoginScreen = () => {
   };
 
   const DemoCredentialsInfo = () => (
-    <View className="p-4 bg-blue-50 rounded-xl border border-blue-200">
-      <View className="flex-row items-center mb-2">
-        <Feather name="info" size={18} color="#2196F3" />
-        <Text className="text-blue-600 font-semibold ml-2">
+    <View style={styles.demoInfoContainer}>
+      <View style={styles.demoInfoHeader}>
+        <Icon name="info-outline" size={18} color={AppTheme.infoColor} />
+        <Text style={styles.demoInfoTitle}>
           How it works
         </Text>
       </View>
-      <Text className="text-gray-600 text-xs leading-5">
-        {`1. Enter your 10-digit mobile number\n2. System checks if you're registered\n3. If registered: Enter OTP to login\n4. If new: Redirect to registration`}
+      <Text style={styles.demoInfoText}>
+        {`1. Enter any 10-digit mobile number\n2. You'll be redirected to OTP screen\n3. Enter any 6-digit OTP to login\n4. Get redirected to home screen`}
       </Text>
     </View>
   );
@@ -178,165 +152,109 @@ const LoginScreen = () => {
   });
 
   return (
-    <View className="flex-1 bg-green-700">
+    <View style={styles.container}>
       <ScrollView 
-        contentContainerStyle={{ flexGrow: 1 }}
+        contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
-        <View className="flex-[3] justify-center items-center py-4">
+        <View style={[styles.topSection, { flex: 3 }]}>
           <Animated.View 
-            style={{
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnimation }]
-            }}
-            className="items-center"
+            style={[
+              styles.topContent,
+              {
+                opacity: fadeAnim,
+                transform: [{ translateY: slideAnimation }]
+              }
+            ]}
           >
-            <View className="bg-white/20 rounded-full p-5">
-              <Feather name="sun" size={isSmallScreen ? 50 : 60} color="#FFFFFF" />
+            <View style={styles.logoContainer}>
+              <Icon name="agriculture" size={isSmallScreen ? 50 : 60} color="#FFFFFF" />
             </View>
             
             <View style={{ height: isSmallScreen ? 16 : 24 }} />
             
-            <Text className="text-white font-bold text-3xl text-center">
+            <Text style={styles.appTitle}>
               SmartFarmer
             </Text>
             
-            <View className="h-2" />
+            <View style={{ height: 8 }} />
             
-            <Text className="text-white/90 text-center text-base">
+            <Text style={styles.appSubtitle}>
               Smart Farming Management
             </Text>
           </Animated.View>
         </View>
 
-        <View className="flex-[5] bg-white rounded-t-[32px] overflow-hidden">
+        <View style={[styles.bottomSection, { flex: -5 }]}>
           <Animated.View 
-            style={{
-              transform: [{ translateY: slideAnimation }]
-            }}
-            className="flex-1"
+            style={[
+              styles.formContainer,
+              {
+                transform: [{ translateY: slideAnimation }]
+              }
+            ]}
           >
             <ScrollView 
-              className="flex-1"
-              contentContainerStyle={{ padding: 24, paddingBottom: 40 }}
+              style={styles.formScroll}
+              contentContainerStyle={styles.formContent}
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
             >
-              {/* Back Button for OTP Screen */}
-              {showOTPField && (
-                <TouchableOpacity 
-                  className="flex-row items-center mb-4 py-2"
-                  onPress={goBackToMobile}
-                >
-                  <Feather name="arrow-left" size={24} color="#2E7D32" />
-                  <Text className="text-green-700 font-semibold text-sm ml-2">
-                    Back to mobile number
-                  </Text>
-                </TouchableOpacity>
-              )}
-
-              <Text className="font-semibold text-gray-900 text-2xl">
-                {showOTPField ? 'Enter OTP' : 'Welcome Back'}
+              <Text style={styles.welcomeTitle}>
+                Welcome Back
               </Text>
               
-              <View className="h-2" />
+              <View style={{ height: 8 }} />
               
-              <Text className="text-gray-600 text-sm">
-                {showOTPField 
-                  ? `Enter the 6-digit code sent to ${mobileNumber}`
-                  : 'Sign in to continue to your account'
-                }
+              <Text style={styles.welcomeSubtitle}>
+                Enter your mobile number to continue
               </Text>
               
               <View style={{ height: isSmallScreen ? 20 : 32 }} />
 
-              <View className="w-full">
+              <View style={styles.form}>
                 {/* Mobile Number Field */}
-                {!showOTPField && (
-                  <>
-                    <TextInputField
-                      label="Mobile Number"
-                      value={mobileNumber}
-                      onChangeText={setMobileNumber}
-                      placeholder="Enter your 10-digit mobile number"
-                      icon="phone"
-                      keyboardType="number-pad"
-                      maxLength={10}
-                      inputRef={mobileInputRef}
-                      returnKeyType="done"
-                      blurOnSubmit={false}
-                    />
-                    
-                    <View style={{ height: isSmallScreen ? 12 : 16 }} />
-                    
-                    <TouchableOpacity
-                      className={`w-full h-[50px] bg-green-700 rounded-xl justify-center items-center ${
-                        (isLoading || mobileNumber.length !== 10) ? 'opacity-50' : ''
-                      }`}
-                      onPress={checkMobileNumber}
-                      disabled={isLoading || mobileNumber.length !== 10}
-                    >
-                      {isLoading ? (
-                        <ActivityIndicator size="small" color="#FFFFFF" />
-                      ) : (
-                        <Text className="text-white font-semibold text-base">
-                          Verify Mobile Number
-                        </Text>
-                      )}
-                    </TouchableOpacity>
+                <TextInputField
+                  label="Mobile Number"
+                  value={mobileNumber}
+                  onChangeText={setMobileNumber}
+                  placeholder="Enter any 10-digit mobile number"
+                  icon="phone"
+                  keyboardType="number-pad"
+                  maxLength={10}
+                  inputRef={mobileInputRef}
+                  returnKeyType="done"
+                  blurOnSubmit={false}
+                />
+                
+                <View style={{ height: isSmallScreen ? 12 : 16 }} />
+                
+                <TouchableOpacity
+                  style={styles.primaryButton}
+                  onPress={navigateToOTP}
+                  disabled={isLoading || mobileNumber.length !== 10}
+                >
+                  {isLoading ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <Text style={styles.primaryButtonText}>
+                      Send OTP
+                    </Text>
+                  )}
+                </TouchableOpacity>
 
-                    {/* Sign Up Button */}
-                    <View style={{ height: isSmallScreen ? 12 : 16 }} />
-                    
-                    <TouchableOpacity
-                      className={`w-full h-[50px] bg-transparent border-2 border-green-700 rounded-xl justify-center items-center ${
-                        isLoading ? 'opacity-50' : ''
-                      }`}
-                      onPress={handleSignUp}
-                      disabled={isLoading}
-                    >
-                      <Text className="text-green-700 font-semibold text-base">
-                        New User? Sign Up
-                      </Text>
-                    </TouchableOpacity>
-                  </>
-                )}
-
-                {/* OTP Field */}
-                {showOTPField && (
-                  <>
-                    <TextInputField
-                      label="OTP"
-                      value={otp}
-                      onChangeText={setOtp}
-                      placeholder="Enter 6-digit OTP"
-                      icon="lock"
-                      keyboardType="number-pad"
-                      maxLength={6}
-                      inputRef={otpInputRef}
-                      returnKeyType="done"
-                      blurOnSubmit={false}
-                    />
-                    
-                    <View style={{ height: isSmallScreen ? 12 : 16 }} />
-                    
-                    <TouchableOpacity
-                      className={`w-full h-[50px] bg-green-700 rounded-xl justify-center items-center ${
-                        (isLoading || otp.length !== 6) ? 'opacity-50' : ''
-                      }`}
-                      onPress={verifyOTPAndLogin}
-                      disabled={isLoading || otp.length !== 6}
-                    >
-                      {isLoading ? (
-                        <ActivityIndicator size="small" color="#FFFFFF" />
-                      ) : (
-                        <Text className="text-white font-semibold text-base">
-                          Sign In
-                        </Text>
-                      )}
-                    </TouchableOpacity>
-                  </>
-                )}
+                {/* Sign Up Button */}
+                <View style={{ height: isSmallScreen ? 12 : 16 }} />
+                
+                <TouchableOpacity
+                  style={styles.outlineButton}
+                  onPress={handleSignUp}
+                  disabled={isLoading}
+                >
+                  <Text style={styles.outlineButtonText}>
+                    New User? Sign Up
+                  </Text>
+                </TouchableOpacity>
               </View>
 
               <View style={{ height: isSmallScreen ? 16 : 24 }} />
@@ -350,6 +268,149 @@ const LoginScreen = () => {
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: AppTheme.primaryColor,
+  },
+  scrollContent: {
+    flexGrow: 1,
+  },
+  topSection: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 16,
+  },
+  topContent: {
+    alignItems: 'center',
+  },
+  logoContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 100,
+    padding: 20,
+  },
+  appTitle: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: 28,
+    textAlign: 'center',
+  },
+  appSubtitle: {
+    color: 'rgba(255, 255, 255, 0.9)',
+    textAlign: 'center',
+    fontSize: 16,
+  },
+  bottomSection: {
+    backgroundColor: AppTheme.backgroundColor,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    overflow: 'hidden',
+    flex: 1,
+  },
+  formContainer: {
+    flex: 1,
+  },
+  formScroll: {
+    flex: 1,
+  },
+  formContent: {
+    padding: 24,
+    paddingBottom: 40,
+  },
+  welcomeTitle: {
+    fontWeight: '600',
+    color: AppTheme.textPrimaryColor,
+    fontSize: 22,
+  },
+  welcomeSubtitle: {
+    color: AppTheme.textSecondaryColor,
+    fontSize: 14,
+  },
+  form: {
+    width: '100%',
+  },
+  inputContainer: {
+    marginBottom: 16,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: AppTheme.textPrimaryColor,
+    marginBottom: 8,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#DDD',
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+  },
+  inputIcon: {
+    padding: 12,
+  },
+  textInput: {
+    flex: 1,
+    padding: 12,
+    fontSize: 16,
+    color: AppTheme.textPrimaryColor,
+  },
+  disabledInput: {
+    backgroundColor: '#F5F5F5',
+    color: '#666666',
+  },
+  primaryButton: {
+    width: '100%',
+    height: 50,
+    backgroundColor: AppTheme.primaryColor,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  primaryButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  outlineButton: {
+    width: '100%',
+    height: 50,
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: AppTheme.primaryColor,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  outlineButtonText: {
+    color: AppTheme.primaryColor,
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  demoInfoContainer: {
+    padding: 16,
+    backgroundColor: 'rgba(33, 150, 243, 0.1)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(33, 150, 243, 0.3)',
+  },
+  demoInfoHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  demoInfoTitle: {
+    color: AppTheme.infoColor,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  demoInfoText: {
+    color: AppTheme.textSecondaryColor,
+    lineHeight: 18,
+    fontSize: 12,
+  },
+});
 
 export default LoginScreen;
 

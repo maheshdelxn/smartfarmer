@@ -5,8 +5,6 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
-  StyleSheet,
   Alert,
   ActivityIndicator,
   Dimensions,
@@ -16,9 +14,9 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { Feather } from '@expo/vector-icons';
 
-// Mock implementations for now - replace with your actual implementations
+// Mock implementations
 const AppStrings = {
   getString: (key, langCode = 'en') => {
     const strings = {
@@ -49,35 +47,12 @@ const AppStrings = {
       'enter_landmark': { en: 'Enter landmark', hi: 'लैंडमार्क दर्ज करें' },
       'pincode': { en: 'Pincode', hi: 'पिनकोड' },
       'enter_pincode': { en: 'Enter pincode', hi: 'पिनकोड दर्ज करें' },
-      'name_required': { en: 'Name is required', hi: 'नाम आवश्यक है' },
-      'name_min_length': { en: 'Name must be at least 2 characters', hi: 'नाम कम से कम 2 अक्षरों का होना चाहिए' },
-      'phone_required': { en: 'Phone number is required', hi: 'फोन नंबर आवश्यक है' },
-      'invalid_phone': { en: 'Please enter a valid 10-digit phone number', hi: 'कृपया वैध 10-अंकीय फोन नंबर दर्ज करें' },
-      'aadhaar_required': { en: 'Aadhaar number is required', hi: 'आधार नंबर आवश्यक है' },
-      'invalid_aadhaar': { en: 'Please enter a valid 12-digit Aadhaar number', hi: 'कृपया वैध 12-अंकीय आधार नंबर दर्ज करें' },
-      'district_required': { en: 'District is required', hi: 'जिला आवश्यक है' },
-      'taluka_required': { en: 'Taluka is required', hi: 'तालुका आवश्यक है' },
-      'village_required': { en: 'Village is required', hi: 'गांव आवश्यक है' },
-      'landmark_required': { en: 'Landmark is required', hi: 'लैंडमार्क आवश्यक है' },
-      'pincode_required': { en: 'Pincode is required', hi: 'पिनकोड आवश्यक है' },
-      'invalid_pincode': { en: 'Please enter a valid 6-digit pincode', hi: 'कृपया वैध 6-अंकीय पिनकोड दर्ज करें' },
-      'select_from_suggestions': { en: 'Please select from suggestions', hi: 'कृपया सुझावों में से चुनें' },
     };
     return strings[key]?.[langCode] || key;
   }
 };
 
-const AppTheme = {
-  primaryColor: '#2E7D32',
-  backgroundColor: '#F5F5F5',
-  successColor: '#4CAF50',
-  errorColor: '#F44336',
-  textSecondaryColor: '#666666',
-  dividerColor: '#E0E0E0',
-};
-
 const AppConstants = {
-  stateMaharashtra: 'maharashtra',
   maharashtraDistricts: {
     'Mumbai': ['Mumbai City', 'Mumbai Suburban'],
     'Pune': ['Pune City', 'Pune Rural', 'Baramati'],
@@ -93,33 +68,31 @@ const ProgressStep = ({ step, title, icon, isSmallScreen, currentStep }) => {
   const isCompleted = currentStep > step;
 
   return (
-    <View style={styles.progressStepContainer}>
-      <View style={[
-        styles.progressIcon,
-        {
-          width: isSmallScreen ? 32 : 40,
-          height: isSmallScreen ? 32 : 40,
-          backgroundColor: isCompleted 
-            ? AppTheme.successColor 
-            : isActive 
-              ? AppTheme.primaryColor 
-              : AppTheme.textSecondaryColor + '30',
-        }
-      ]}>
-        <Icon 
-          name={isCompleted ? "check" : icon} 
-          size={isSmallScreen ? 16 : 20} 
-          color="#FFFFFF" 
+    <View className="flex-1 items-center">
+      <View
+        className={`rounded-full justify-center items-center mb-1 ${
+          isSmallScreen ? 'w-8 h-8' : 'w-10 h-10'
+        } ${
+          isCompleted
+            ? 'bg-green-500'
+            : isActive
+              ? 'bg-green-700'
+              : 'bg-gray-300'
+        }`}
+      >
+        <Feather
+          name={isCompleted ? "check" : icon}
+          size={isSmallScreen ? 16 : 20}
+          color="#FFFFFF"
         />
       </View>
-      <Text style={[
-        styles.progressText,
-        {
-          fontSize: isSmallScreen ? 10 : 12,
-          color: isActive ? AppTheme.primaryColor : AppTheme.textSecondaryColor,
-          fontWeight: isActive ? '600' : 'normal',
-        }
-      ]}>
+      <Text
+        className={`text-center ${
+          isSmallScreen ? 'text-xs' : 'text-sm'
+        } ${
+          isActive ? 'text-green-700 font-semibold' : 'text-gray-500'
+        }`}
+      >
         {title}
       </Text>
     </View>
@@ -128,10 +101,11 @@ const ProgressStep = ({ step, title, icon, isSmallScreen, currentStep }) => {
 
 // ProgressLine Component
 const ProgressLine = ({ currentStep }) => (
-  <View style={[
-    styles.progressLine,
-    { backgroundColor: currentStep > 0 ? AppTheme.primaryColor : AppTheme.dividerColor }
-  ]} />
+  <View
+    className={`w-5 h-0.5 ${
+      currentStep > 0 ? 'bg-green-700' : 'bg-gray-300'
+    }`}
+  />
 );
 
 const FarmerRegistrationScreen = ({ route }) => {
@@ -141,7 +115,6 @@ const FarmerRegistrationScreen = ({ route }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [langCode, setLangCode] = useState('en');
-  
   // Form fields
   const [name, setName] = useState('');
   const [contact, setContact] = useState(initialContact || '');
@@ -152,7 +125,6 @@ const FarmerRegistrationScreen = ({ route }) => {
   const [district, setDistrict] = useState('');
   const [pincode, setPincode] = useState('');
   const [state, setState] = useState('Maharashtra');
-  
   // Autocomplete states
   const [availableTalukas, setAvailableTalukas] = useState([]);
   const [isDistrictSelected, setIsDistrictSelected] = useState(false);
@@ -162,15 +134,18 @@ const FarmerRegistrationScreen = ({ route }) => {
   const [showTalukaSuggestions, setShowTalukaSuggestions] = useState(false);
 
   const scrollViewRef = useRef();
-  const { width, height } = Dimensions.get('window');
+  const { height } = Dimensions.get('window');
   const isSmallScreen = height < 700;
 
   // Refs for text inputs
+  const nameInputRef = useRef(null);
   const contactInputRef = useRef(null);
   const aadhaarInputRef = useRef(null);
-  const pincodeInputRef = useRef(null);
+  const districtInputRef = useRef(null);
+  const talukaInputRef = useRef(null);
   const villageInputRef = useRef(null);
   const landmarkInputRef = useRef(null);
+  const pincodeInputRef = useRef(null);
 
   useEffect(() => {
     if (initialContact) {
@@ -179,7 +154,7 @@ const FarmerRegistrationScreen = ({ route }) => {
   }, [initialContact]);
 
   const getLocalizedDistricts = () => {
-    return Object.keys(AppConstants.maharashtraDistricts).map(district => 
+    return Object.keys(AppConstants.maharashtraDistricts).map(district =>
       AppStrings.getString(district, langCode)
     );
   };
@@ -220,6 +195,11 @@ const FarmerRegistrationScreen = ({ route }) => {
     setAvailableTalukas(talukas.map(taluka => AppStrings.getString(taluka, langCode)));
     setIsDistrictSelected(true);
     setTalukaSuggestions(getLocalizedTalukas(selectedDistrict));
+    
+    // Focus on taluka input after district selection
+    setTimeout(() => {
+      talukaInputRef.current?.focus();
+    }, 100);
   };
 
   const handleTalukaChange = (text) => {
@@ -236,6 +216,36 @@ const FarmerRegistrationScreen = ({ route }) => {
   const selectTaluka = (selectedTaluka) => {
     setTaluka(selectedTaluka);
     setShowTalukaSuggestions(false);
+    
+    // Focus on village input after taluka selection
+    setTimeout(() => {
+      villageInputRef.current?.focus();
+    }, 100);
+  };
+
+  const handleNameChange = (text) => {
+    setName(text);
+  };
+
+  const handleContactChange = (text) => {
+    const numericText = text.replace(/[^0-9]/g, '');
+    if (numericText.length <= 10) {
+      setContact(numericText);
+    }
+  };
+
+  const handleAadhaarChange = (text) => {
+    const numericText = text.replace(/[^0-9]/g, '');
+    if (numericText.length <= 12) {
+      setAadhaar(numericText);
+    }
+  };
+
+  const handlePincodeChange = (text) => {
+    const numericText = text.replace(/[^0-9]/g, '');
+    if (numericText.length <= 6) {
+      setPincode(numericText);
+    }
   };
 
   const validateCurrentStep = () => {
@@ -257,6 +267,10 @@ const FarmerRegistrationScreen = ({ route }) => {
   const nextStep = () => {
     if (validateCurrentStep() && currentStep < 1) {
       setCurrentStep(currentStep + 1);
+      // Auto-focus on first field of next step
+      setTimeout(() => {
+        districtInputRef.current?.focus();
+      }, 300);
     } else {
       Alert.alert(
         'Validation Error',
@@ -285,7 +299,7 @@ const FarmerRegistrationScreen = ({ route }) => {
     setIsLoading(true);
 
     try {
-      // Mock registration - replace with your actual AuthService
+      // Mock registration
       const registrationResult = {
         success: true,
         message: 'Registration successful',
@@ -306,7 +320,6 @@ const FarmerRegistrationScreen = ({ route }) => {
 
       if (registrationResult.success) {
         Alert.alert('Success', registrationResult.message);
-        // Navigate to dashboard
         navigation.reset({
           index: 0,
           routes: [{ name: 'MainApp' }],
@@ -322,230 +335,289 @@ const FarmerRegistrationScreen = ({ route }) => {
     }
   };
 
-  // NEW: Simple TextInputField without complex keyboard props
-  const TextInputField = ({
-    label,
-    value,
-    onChangeText,
-    placeholder,
-    icon,
-    keyboardType = 'default',
-    maxLength,
-    editable = true,
-    secureTextEntry = false,
-    inputRef,
-  }) => (
-    <View style={styles.inputContainer}>
-      <Text style={styles.inputLabel}>{label}</Text>
-      <View style={styles.inputWrapper}>
-        <Icon name={icon} size={20} color={AppTheme.primaryColor} style={styles.inputIcon} />
-        <TextInput
-          ref={inputRef}
-          style={[
-            styles.textInput,
-            !editable && styles.disabledInput
-          ]}
-          value={value}
-          onChangeText={onChangeText}
-          placeholder={placeholder}
-          placeholderTextColor="#999"
-          keyboardType={keyboardType}
-          maxLength={maxLength}
-          editable={editable}
-          secureTextEntry={secureTextEntry}
-          // Minimal props - let the system handle keyboard
-        />
-      </View>
-    </View>
-  );
-
-  // NEW: Simple AutocompleteInput
-  const AutocompleteInput = ({
-    label,
-    value,
-    onChangeText,
-    placeholder,
-    icon,
-    suggestions,
-    showSuggestions,
-    onSelectSuggestion,
-    editable = true,
-  }) => (
-    <View style={styles.inputContainer}>
-      <Text style={styles.inputLabel}>{label}</Text>
-      <View style={styles.inputWrapper}>
-        <Icon name={icon} size={20} color={AppTheme.primaryColor} style={styles.inputIcon} />
-        <TextInput
-          style={[
-            styles.textInput,
-            !editable && styles.disabledInput
-          ]}
-          value={value}
-          onChangeText={onChangeText}
-          placeholder={placeholder}
-          placeholderTextColor="#999"
-          editable={editable}
-        />
-      </View>
-      {showSuggestions && suggestions.length > 0 && (
-        <View style={styles.suggestionsContainer}>
-          <ScrollView 
-            style={styles.suggestionsList}
-            keyboardShouldPersistTaps="always"
-          >
-            {suggestions.map((item, index) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.suggestionItem}
-                onPress={() => {
-                  Keyboard.dismiss();
-                  onSelectSuggestion(item);
-                }}
-              >
-                <Text style={styles.suggestionText}>{item}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-      )}
-    </View>
-  );
-
   // Personal Information Step Component
   const PersonalInfoStep = () => (
-    <View style={styles.stepContainer}>
-      <ScrollView 
+    <View className="flex-1">
+      <ScrollView
         ref={scrollViewRef}
-        style={styles.scrollView}
-        contentContainerStyle={styles.stepContent}
+        className="flex-1"
+        contentContainerStyle={{ padding: 16, paddingBottom: 20 }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.stepTitle}>
+        <Text className="text-xl font-semibold text-black mb-2">
           {AppStrings.getString('personal_information', langCode)}
         </Text>
-        <Text style={styles.stepSubtitle}>
+        <Text className="text-sm text-gray-500 mb-6 leading-5">
           {AppStrings.getString('please_provide_basic_info', langCode)}
         </Text>
 
-        <TextInputField
-          label={AppStrings.getString('full_name', langCode)}
-          value={name}
-          onChangeText={setName}
-          placeholder={AppStrings.getString('enter_full_name', langCode)}
-          icon="person"
-          inputRef={contactInputRef}
-        />
+        {/* Name Input */}
+        <View className="mb-4">
+          <Text className="text-sm font-medium text-black mb-2">
+            {AppStrings.getString('full_name', langCode)}
+          </Text>
+          <View className="flex-row items-center border border-gray-300 rounded-xl bg-white">
+            <View className="p-3">
+              <Feather name="user" size={20} color="#2E7D32" />
+            </View>
+            <TextInput
+              ref={nameInputRef}
+              className="flex-1 p-3 text-base text-black"
+              value={name}
+              onChangeText={handleNameChange}
+              placeholder={AppStrings.getString('enter_full_name', langCode)}
+              placeholderTextColor="#999"
+              returnKeyType="next"
+              onSubmitEditing={() => contactInputRef.current?.focus()}
+            />
+          </View>
+        </View>
 
-        <TextInputField
-          label={AppStrings.getString('contact_number', langCode)}
-          value={contact}
-          onChangeText={setContact}
-          placeholder={AppStrings.getString('enter_mobile_number', langCode)}
-          icon="phone"
-          keyboardType="number-pad"
-          maxLength={10}
-          inputRef={contactInputRef}
-        />
+        {/* Contact Input */}
+        <View className="mb-4">
+          <Text className="text-sm font-medium text-black mb-2">
+            {AppStrings.getString('contact_number', langCode)}
+          </Text>
+          <View className="flex-row items-center border border-gray-300 rounded-xl bg-white">
+            <View className="p-3">
+              <Feather name="phone" size={20} color="#2E7D32" />
+            </View>
+            <TextInput
+              ref={contactInputRef}
+              className="flex-1 p-3 text-base text-black"
+              value={contact}
+              onChangeText={handleContactChange}
+              placeholder={AppStrings.getString('enter_mobile_number', langCode)}
+              placeholderTextColor="#999"
+              keyboardType="number-pad"
+              maxLength={10}
+              returnKeyType="next"
+              onSubmitEditing={() => aadhaarInputRef.current?.focus()}
+            />
+          </View>
+        </View>
 
-        <TextInputField
-          label={AppStrings.getString('aadhaar_number', langCode)}
-          value={aadhaar}
-          onChangeText={setAadhaar}
-          placeholder={AppStrings.getString('enter_aadhaar_number', langCode)}
-          icon="credit-card"
-          keyboardType="number-pad"
-          maxLength={12}
-          inputRef={aadhaarInputRef}
-        />
+        {/* Aadhaar Input */}
+        <View className="mb-4">
+          <Text className="text-sm font-medium text-black mb-2">
+            {AppStrings.getString('aadhaar_number', langCode)}
+          </Text>
+          <View className="flex-row items-center border border-gray-300 rounded-xl bg-white">
+            <View className="p-3">
+              <Feather name="credit-card" size={20} color="#2E7D32" />
+            </View>
+            <TextInput
+              ref={aadhaarInputRef}
+              className="flex-1 p-3 text-base text-black"
+              value={aadhaar}
+              onChangeText={handleAadhaarChange}
+              placeholder={AppStrings.getString('enter_aadhaar_number', langCode)}
+              placeholderTextColor="#999"
+              keyboardType="number-pad"
+              maxLength={12}
+              returnKeyType="done"
+              onSubmitEditing={nextStep}
+            />
+          </View>
+        </View>
       </ScrollView>
     </View>
   );
 
   // Address Information Step Component
   const AddressStep = () => (
-    <View style={styles.stepContainer}>
-      <ScrollView 
-        style={styles.scrollView}
-        contentContainerStyle={styles.stepContent}
+    <View className="flex-1">
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{ padding: 16, paddingBottom: 20 }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.stepTitle}>
+        <Text className="text-xl font-semibold text-black mb-2">
           {AppStrings.getString('address_information', langCode)}
         </Text>
-        <Text style={styles.stepSubtitle}>
+        <Text className="text-sm text-gray-500 mb-6 leading-5">
           {AppStrings.getString('please_provide_address', langCode)}
         </Text>
 
-        <TextInputField
-          label={AppStrings.getString('state', langCode)}
-          value={state}
-          onChangeText={setState}
-          placeholder={AppStrings.getString('your_state', langCode)}
-          icon="account-balance"
-          editable={false}
-        />
+        {/* State Input (Disabled) */}
+        <View className="mb-4">
+          <Text className="text-sm font-medium text-black mb-2">
+            {AppStrings.getString('state', langCode)}
+          </Text>
+          <View className="flex-row items-center border border-gray-300 rounded-xl bg-gray-100">
+            <View className="p-3">
+              <Feather name="map-pin" size={20} color="#2E7D32" />
+            </View>
+            <TextInput
+              className="flex-1 p-3 text-base text-gray-600"
+              value={state}
+              placeholder={AppStrings.getString('your_state', langCode)}
+              placeholderTextColor="#999"
+              editable={false}
+            />
+          </View>
+        </View>
 
-        <AutocompleteInput
-          label={AppStrings.getString('district', langCode)}
-          value={district}
-          onChangeText={handleDistrictChange}
-          placeholder={AppStrings.getString('enter_district', langCode)}
-          icon="flag"
-          suggestions={districtSuggestions}
-          showSuggestions={showDistrictSuggestions}
-          onSelectSuggestion={selectDistrict}
-        />
+        {/* District Input with Autocomplete */}
+        <View className="mb-4 relative z-50">
+          <Text className="text-sm font-medium text-black mb-2">
+            {AppStrings.getString('district', langCode)}
+          </Text>
+          <View className="flex-row items-center border border-gray-300 rounded-xl bg-white">
+            <View className="p-3">
+              <Feather name="flag" size={20} color="#2E7D32" />
+            </View>
+            <TextInput
+              ref={districtInputRef}
+              className="flex-1 p-3 text-base text-black"
+              value={district}
+              onChangeText={handleDistrictChange}
+              placeholder={AppStrings.getString('enter_district', langCode)}
+              placeholderTextColor="#999"
+              returnKeyType="next"
+            />
+          </View>
+          {showDistrictSuggestions && districtSuggestions.length > 0 && (
+            <View className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-lg mt-1 shadow-lg elevation-8" style={{ maxHeight: 200, zIndex: 1000 }}>
+              <ScrollView
+                keyboardShouldPersistTaps="always"
+                nestedScrollEnabled={true}
+              >
+                {districtSuggestions.map((item, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    className="p-4 border-b border-gray-100"
+                    onPress={() => {
+                      selectDistrict(item);
+                    }}
+                  >
+                    <Text className="text-base text-black">{item}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          )}
+        </View>
 
-        <AutocompleteInput
-          label={AppStrings.getString('taluka', langCode)}
-          value={taluka}
-          onChangeText={handleTalukaChange}
-          placeholder={isDistrictSelected 
-            ? AppStrings.getString('select_your_taluka', langCode)
-            : AppStrings.getString('select_district_first', langCode)
-          }
-          icon="map"
-          suggestions={talukaSuggestions}
-          showSuggestions={showTalukaSuggestions}
-          onSelectSuggestion={selectTaluka}
-          editable={isDistrictSelected}
-        />
+        {/* Taluka Input with Autocomplete */}
+        <View className="mb-4 relative z-40">
+          <Text className="text-sm font-medium text-black mb-2">
+            {AppStrings.getString('taluka', langCode)}
+          </Text>
+          <View className={`flex-row items-center border border-gray-300 rounded-xl ${!isDistrictSelected ? 'bg-gray-100' : 'bg-white'}`}>
+            <View className="p-3">
+              <Feather name="map" size={20} color="#2E7D32" />
+            </View>
+            <TextInput
+              ref={talukaInputRef}
+              className={`flex-1 p-3 text-base ${!isDistrictSelected ? 'text-gray-600' : 'text-black'}`}
+              value={taluka}
+              onChangeText={handleTalukaChange}
+              placeholder={isDistrictSelected
+                ? AppStrings.getString('select_your_taluka', langCode)
+                : AppStrings.getString('select_district_first', langCode)
+              }
+              placeholderTextColor="#999"
+              editable={isDistrictSelected}
+              returnKeyType="next"
+            />
+          </View>
+          {showTalukaSuggestions && talukaSuggestions.length > 0 && (
+            <View className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-lg mt-1 shadow-lg elevation-8" style={{ maxHeight: 200, zIndex: 1000 }}>
+              <ScrollView
+                keyboardShouldPersistTaps="always"
+                nestedScrollEnabled={true}
+              >
+                {talukaSuggestions.map((item, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    className="p-4 border-b border-gray-100"
+                    onPress={() => {
+                      selectTaluka(item);
+                    }}
+                  >
+                    <Text className="text-base text-black">{item}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          )}
+        </View>
 
-        <TextInputField
-          label={AppStrings.getString('village', langCode)}
-          value={village}
-          onChangeText={setVillage}
-          placeholder={AppStrings.getString('enter_village', langCode)}
-          icon="map"
-          inputRef={villageInputRef}
-        />
+        {/* Village Input */}
+        <View className="mb-4">
+          <Text className="text-sm font-medium text-black mb-2">
+            {AppStrings.getString('village', langCode)}
+          </Text>
+          <View className="flex-row items-center border border-gray-300 rounded-xl bg-white">
+            <View className="p-3">
+              <Feather name="home" size={20} color="#2E7D32" />
+            </View>
+            <TextInput
+              ref={villageInputRef}
+              className="flex-1 p-3 text-base text-black"
+              value={village}
+              onChangeText={setVillage}
+              placeholder={AppStrings.getString('enter_village', langCode)}
+              placeholderTextColor="#999"
+              returnKeyType="next"
+              onSubmitEditing={() => landmarkInputRef.current?.focus()}
+            />
+          </View>
+        </View>
 
-        <TextInputField
-          label={AppStrings.getString('landmark', langCode)}
-          value={landmark}
-          onChangeText={setLandmark}
-          placeholder={AppStrings.getString('enter_landmark', langCode)}
-          icon="place"
-          inputRef={landmarkInputRef}
-        />
+        {/* Landmark Input */}
+        <View className="mb-4">
+          <Text className="text-sm font-medium text-black mb-2">
+            {AppStrings.getString('landmark', langCode)}
+          </Text>
+          <View className="flex-row items-center border border-gray-300 rounded-xl bg-white">
+            <View className="p-3">
+              <Feather name="map-pin" size={20} color="#2E7D32" />
+            </View>
+            <TextInput
+              ref={landmarkInputRef}
+              className="flex-1 p-3 text-base text-black"
+              value={landmark}
+              onChangeText={setLandmark}
+              placeholder={AppStrings.getString('enter_landmark', langCode)}
+              placeholderTextColor="#999"
+              returnKeyType="next"
+              onSubmitEditing={() => pincodeInputRef.current?.focus()}
+            />
+          </View>
+        </View>
 
-        <TextInputField
-          label={AppStrings.getString('pincode', langCode)}
-          value={pincode}
-          onChangeText={setPincode}
-          placeholder={AppStrings.getString('enter_pincode', langCode)}
-          icon="pin-drop"
-          keyboardType="number-pad"
-          maxLength={6}
-          inputRef={pincodeInputRef}
-        />
+        {/* Pincode Input */}
+        <View className="mb-4">
+          <Text className="text-sm font-medium text-black mb-2">
+            {AppStrings.getString('pincode', langCode)}
+          </Text>
+          <View className="flex-row items-center border border-gray-300 rounded-xl bg-white">
+            <View className="p-3">
+              <Feather name="navigation" size={20} color="#2E7D32" />
+            </View>
+            <TextInput
+              ref={pincodeInputRef}
+              className="flex-1 p-3 text-base text-black"
+              value={pincode}
+              onChangeText={handlePincodeChange}
+              placeholder={AppStrings.getString('enter_pincode', langCode)}
+              placeholderTextColor="#999"
+              keyboardType="number-pad"
+              maxLength={6}
+              returnKeyType="done"
+              onSubmitEditing={handleRegistration}
+            />
+          </View>
+        </View>
       </ScrollView>
     </View>
   );
 
-  // NEW: Dismiss keyboard when tapping outside
+  // Dismiss keyboard when tapping outside
   const DismissKeyboard = ({ children }) => (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       {children}
@@ -553,31 +625,33 @@ const FarmerRegistrationScreen = ({ route }) => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View className="flex-1 bg-white">
       <KeyboardAvoidingView
-        style={styles.container}
+        className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <DismissKeyboard>
-          <View style={styles.container}>
-            <View style={styles.header}>
-              <TouchableOpacity 
-                style={styles.backButton}
+          <View className="flex-1">
+            {/* Header */}
+            <View className="bg-green-700 flex-row items-center justify-between px-4 py-3 elevation-4 shadow-lg">
+              <TouchableOpacity
+                className="p-1"
                 onPress={() => navigation.goBack()}
               >
-                <Icon name="arrow-back" size={24} color="#FFFFFF" />
+                <Feather name="arrow-left" size={24} color="#FFFFFF" />
               </TouchableOpacity>
-              <Text style={styles.headerTitle}>
+              <Text className="text-lg font-semibold text-white">
                 {AppStrings.getString('registration', langCode)}
               </Text>
-              <View style={styles.headerPlaceholder} />
+              <View className="w-8" />
             </View>
 
-            <View style={styles.progressContainer}>
+            {/* Progress Bar */}
+            <View className="flex-row items-center px-4 py-3 bg-gray-50 border-b border-gray-300">
               <ProgressStep
                 step={0}
                 title={AppStrings.getString('personal_information', langCode)}
-                icon="person"
+                icon="user"
                 isSmallScreen={isSmallScreen}
                 currentStep={currentStep}
               />
@@ -585,26 +659,28 @@ const FarmerRegistrationScreen = ({ route }) => {
               <ProgressStep
                 step={1}
                 title={AppStrings.getString('address_information', langCode)}
-                icon="location-on"
+                icon="map-pin"
                 isSmallScreen={isSmallScreen}
                 currentStep={currentStep}
               />
             </View>
 
-            <View style={styles.content}>
+            {/* Content */}
+            <View className="flex-1">
               {currentStep === 0 && <PersonalInfoStep />}
               {currentStep === 1 && <AddressStep />}
             </View>
 
-            <View style={styles.footer}>
-              <View style={styles.buttonContainer}>
+            {/* Footer Buttons */}
+            <View className="p-4 border-t border-gray-300 bg-white">
+              <View className="flex-row">
                 {currentStep > 0 && (
                   <TouchableOpacity
-                    style={[styles.button, styles.outlineButton]}
+                    className={`flex-1 py-4 rounded-xl border border-green-700 mr-4 ${isLoading ? 'opacity-50' : ''}`}
                     onPress={previousStep}
                     disabled={isLoading}
                   >
-                    <Text style={styles.outlineButtonText}>
+                    <Text className="text-green-700 text-base font-semibold text-center">
                       {AppStrings.getString('previous', langCode)}
                     </Text>
                   </TouchableOpacity>
@@ -612,14 +688,14 @@ const FarmerRegistrationScreen = ({ route }) => {
                 
                 {currentStep === 0 && (
                   <TouchableOpacity
-                    style={[styles.button, styles.primaryButton]}
+                    className={`flex-1 py-4 rounded-xl bg-green-700 ${isLoading ? 'opacity-50' : ''}`}
                     onPress={nextStep}
                     disabled={isLoading}
                   >
                     {isLoading ? (
                       <ActivityIndicator size="small" color="#FFFFFF" />
                     ) : (
-                      <Text style={styles.primaryButtonText}>
+                      <Text className="text-white text-base font-semibold text-center">
                         {AppStrings.getString('next', langCode)}
                       </Text>
                     )}
@@ -628,14 +704,14 @@ const FarmerRegistrationScreen = ({ route }) => {
                 
                 {currentStep === 1 && (
                   <TouchableOpacity
-                    style={[styles.button, styles.primaryButton]}
+                    className={`flex-1 py-4 rounded-xl bg-green-700 ${isLoading ? 'opacity-50' : ''}`}
                     onPress={handleRegistration}
                     disabled={isLoading}
                   >
                     {isLoading ? (
                       <ActivityIndicator size="small" color="#FFFFFF" />
                     ) : (
-                      <Text style={styles.primaryButtonText}>
+                      <Text className="text-white text-base font-semibold text-center">
                         {AppStrings.getString('register', langCode)}
                       </Text>
                     )}
@@ -646,186 +722,8 @@ const FarmerRegistrationScreen = ({ route }) => {
           </View>
         </DismissKeyboard>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  header: {
-    backgroundColor: AppTheme.primaryColor,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  backButton: {
-    padding: 4,
-  },
-  headerTitle: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  headerPlaceholder: {
-    width: 32,
-  },
-  progressContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#F8F9FA',
-    borderBottomWidth: 1,
-    borderBottomColor: AppTheme.dividerColor,
-  },
-  progressStepContainer: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  progressIcon: {
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  progressText: {
-    textAlign: 'center',
-  },
-  progressLine: {
-    width: 20,
-    height: 2,
-  },
-  content: {
-    flex: 1,
-  },
-  stepContainer: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  stepContent: {
-    padding: 16,
-    paddingBottom: 20,
-  },
-  stepTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#000000',
-    marginBottom: 8,
-  },
-  stepSubtitle: {
-    fontSize: 14,
-    color: AppTheme.textSecondaryColor,
-    marginBottom: 24,
-    lineHeight: 20,
-  },
-  inputContainer: {
-    marginBottom: 16,
-  },
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#000000',
-    marginBottom: 8,
-  },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#DDD',
-    borderRadius: 12,
-    backgroundColor: '#FFFFFF',
-  },
-  inputIcon: {
-    padding: 12,
-  },
-  textInput: {
-    flex: 1,
-    padding: 12,
-    fontSize: 16,
-    color: '#000000',
-    paddingVertical: 14,
-  },
-  disabledInput: {
-    backgroundColor: '#F5F5F5',
-    color: '#666666',
-  },
-  suggestionsContainer: {
-    position: 'absolute',
-    top: '100%',
-    left: 0,
-    right: 0,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#DDD',
-    borderRadius: 8,
-    maxHeight: 200,
-    zIndex: 1000,
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    marginTop: 4,
-  },
-  suggestionsList: {
-    maxHeight: 200,
-  },
-  suggestionItem: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
-  },
-  suggestionText: {
-    fontSize: 16,
-    color: '#000000',
-  },
-  footer: {
-    padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#F0F0F0',
-    backgroundColor: '#FFFFFF',
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-  },
-  button: {
-    flex: 1,
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  primaryButton: {
-    backgroundColor: AppTheme.primaryColor,
-  },
-  outlineButton: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: AppTheme.primaryColor,
-    marginRight: 16,
-  },
-  primaryButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  outlineButtonText: {
-    color: AppTheme.primaryColor,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-});
 
 export default FarmerRegistrationScreen;
