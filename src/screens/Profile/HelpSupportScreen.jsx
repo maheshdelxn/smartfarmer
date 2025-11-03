@@ -2,7 +2,6 @@ import React from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   TouchableOpacity,
   Linking,
@@ -11,15 +10,20 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useNavigation } from '@react-navigation/native';
 import * as WebBrowser from 'expo-web-browser';
 
-const HelpSupportScreen = ({ navigation }) => {
+const HelpSupportScreen = () => {
+  const navigation = useNavigation();
+
   // Header Card Component
   const HeaderCard = () => (
-    <View style={styles.headerCard}>
-      <Text style={styles.headerIcon}>❓</Text>
-      <Text style={styles.headerTitle}>How can we help you?</Text>
-      <Text style={styles.headerDescription}>
+    <View className="bg-white rounded-2xl p-5 items-center shadow-lg mb-6">
+      <Text className="text-5xl mb-4">❓</Text>
+      <Text className="text-xl font-bold text-green-800 text-center mb-2">
+        How can we help you?
+      </Text>
+      <Text className="text-sm text-gray-500 text-center leading-5">
         Get instant help with our comprehensive support resources, FAQs, and direct contact options.
       </Text>
     </View>
@@ -27,12 +31,12 @@ const HelpSupportScreen = ({ navigation }) => {
 
   // Section Component
   const Section = ({ title, icon, children }) => (
-    <View style={styles.section}>
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionIcon}>{icon}</Text>
-        <Text style={styles.sectionTitle}>{title}</Text>
+    <View className="bg-white rounded-xl shadow-sm mb-6">
+      <View className="flex-row items-center p-4 border-b border-gray-100">
+        <Text className="text-lg mr-2">{icon}</Text>
+        <Text className="text-lg font-bold text-gray-800">{title}</Text>
       </View>
-      <View style={styles.sectionContent}>
+      <View className="p-2">
         {children}
       </View>
     </View>
@@ -40,59 +44,59 @@ const HelpSupportScreen = ({ navigation }) => {
 
   // Contact Item Component
   const ContactItem = ({ icon, title, subtitle, onPress }) => (
-    <TouchableOpacity style={styles.contactItem} onPress={onPress}>
-      <View style={styles.contactIcon}>
-        <Text style={styles.contactIconText}>{icon}</Text>
+    <TouchableOpacity className="flex-row items-center p-3 rounded-lg" onPress={onPress}>
+      <View className="w-10 h-10 bg-green-50 rounded-lg justify-center items-center mr-4">
+        <Text className="text-lg">{icon}</Text>
       </View>
-      <View style={styles.contactContent}>
-        <Text style={styles.contactTitle}>{title}</Text>
-        <Text style={styles.contactSubtitle}>{subtitle}</Text>
+      <View className="flex-1">
+        <Text className="text-base font-medium text-gray-800 mb-1">{title}</Text>
+        <Text className="text-sm text-gray-500">{subtitle}</Text>
       </View>
-      <Text style={styles.contactArrow}>›</Text>
+      <Text className="text-lg text-gray-400 ml-2">›</Text>
     </TouchableOpacity>
   );
 
   // FAQ Item Component
   const FaqItem = ({ question, answer }) => (
-    <View style={styles.faqItem}>
-      <Text style={styles.faqQuestion}>{question}</Text>
-      <Text style={styles.faqAnswer}>{answer}</Text>
+    <View className="p-3">
+      <Text className="text-base font-bold text-green-600 mb-2">{question}</Text>
+      <Text className="text-sm text-gray-500 leading-5">{answer}</Text>
     </View>
   );
 
   // Video Tutorial Item Component
   const VideoTutorialItem = ({ title, duration, onPress }) => (
-    <TouchableOpacity style={styles.videoItem} onPress={onPress}>
-      <View style={styles.videoThumbnail}>
-        <Text style={styles.videoPlayIcon}>▶️</Text>
+    <TouchableOpacity className="flex-row items-center p-3 rounded-lg" onPress={onPress}>
+      <View className="w-20 h-15 bg-gray-100 rounded-lg justify-center items-center mr-4">
+        <Text className="text-lg">▶️</Text>
       </View>
-      <View style={styles.videoContent}>
-        <Text style={styles.videoTitle}>{title}</Text>
-        <View style={styles.videoDuration}>
-          <Text style={styles.durationIcon}>⏱️</Text>
-          <Text style={styles.durationText}>{duration}</Text>
+      <View className="flex-1">
+        <Text className="text-base font-medium text-gray-800 mb-1">{title}</Text>
+        <View className="flex-row items-center">
+          <Text className="text-xs mr-1">⏱️</Text>
+          <Text className="text-sm text-gray-500">{duration}</Text>
         </View>
       </View>
-      <Text style={styles.videoPlayButton}>▶</Text>
+      <Text className="text-lg text-green-600 ml-2">▶</Text>
     </TouchableOpacity>
   );
 
   // Guide Item Component
   const GuideItem = ({ icon, title, description, onPress }) => (
-    <TouchableOpacity style={styles.guideItem} onPress={onPress}>
-      <View style={styles.guideIcon}>
-        <Text style={styles.guideIconText}>{icon}</Text>
+    <TouchableOpacity className="flex-row items-center p-3 rounded-lg" onPress={onPress}>
+      <View className="w-10 h-10 bg-green-50 rounded-lg justify-center items-center mr-4">
+        <Text className="text-lg">{icon}</Text>
       </View>
-      <View style={styles.guideContent}>
-        <Text style={styles.guideTitle}>{title}</Text>
-        <Text style={styles.guideDescription}>{description}</Text>
+      <View className="flex-1">
+        <Text className="text-base font-medium text-gray-800 mb-1">{title}</Text>
+        <Text className="text-sm text-gray-500">{description}</Text>
       </View>
-      <Text style={styles.guideArrow}>›</Text>
+      <Text className="text-lg text-gray-400 ml-2">›</Text>
     </TouchableOpacity>
   );
 
   // Divider Component
-  const Divider = () => <View style={styles.divider} />;
+  const Divider = () => <View className="h-px bg-gray-100 mx-3" />;
 
   // Action Functions
   const launchEmail = async () => {
@@ -169,28 +173,31 @@ const HelpSupportScreen = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView className="flex-1 bg-green-50">
       <StatusBar backgroundColor="#16a34a" barStyle="light-content" />
       
       {/* Custom Header */}
       <LinearGradient
         colors={['#16a34a', '#22c55e']}
-        style={styles.header}
+        className="pt-12 pb-4 shadow-lg"
       >
-        <View style={styles.headerContent}>
-          <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-            <Text style={styles.backButtonText}>←</Text>
+        <View className="flex-row items-center justify-between px-4">
+          <TouchableOpacity 
+            className="w-10 h-10 bg-white/20 rounded-xl justify-center items-center"
+            onPress={handleBack}
+          >
+            <Text className="text-white text-lg font-bold">←</Text>
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Help & Support</Text>
-          <View style={styles.headerPlaceholder} />
+          <Text className="text-white text-xl font-semibold">Help & Support</Text>
+          <View className="w-10" />
         </View>
       </LinearGradient>
 
       <ScrollView 
-        style={styles.scrollView}
+        className="flex-1"
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.content}>
+        <View className="p-5">
           <HeaderCard />
           
           {/* Quick Help Section */}
@@ -303,276 +310,17 @@ const HelpSupportScreen = ({ navigation }) => {
           </Section>
 
           {/* Report Problem Button */}
-          <TouchableOpacity style={styles.reportButton} onPress={reportProblem}>
-            <Text style={styles.reportButtonIcon}>🐛</Text>
-            <Text style={styles.reportButtonText}>Report a Problem</Text>
+          <TouchableOpacity 
+            className="flex-row items-center justify-center bg-red-50 border border-red-200 rounded-xl p-4 mt-2"
+            onPress={reportProblem}
+          >
+            <Text className="text-lg mr-2">🐛</Text>
+            <Text className="text-base font-medium text-red-600">Report a Problem</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8FFFE',
-  },
-  header: {
-    paddingTop: 50,
-    paddingBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
-  },
-  headerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  backButtonText: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  headerTitle: {
-    color: 'white',
-    fontSize: 20,
-    fontWeight: '600',
-  },
-  headerPlaceholder: {
-    width: 40,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  content: {
-    padding: 20,
-  },
-  headerCard: {
-    backgroundColor: 'white',
-    borderRadius: 15,
-    padding: 20,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
-    marginBottom: 24,
-  },
-  headerIcon: {
-    fontSize: 60,
-    marginBottom: 16,
-  },
-  headerTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#166534',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  headerDescription: {
-    fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  section: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  sectionIcon: {
-    fontSize: 20,
-    marginRight: 8,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  sectionContent: {
-    padding: 8,
-  },
-  contactItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    borderRadius: 8,
-  },
-  contactIcon: {
-    width: 40,
-    height: 40,
-    backgroundColor: '#dcfce7',
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  contactIconText: {
-    fontSize: 18,
-  },
-  contactContent: {
-    flex: 1,
-  },
-  contactTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#333',
-    marginBottom: 2,
-  },
-  contactSubtitle: {
-    fontSize: 14,
-    color: '#666',
-  },
-  contactArrow: {
-    fontSize: 18,
-    color: '#999',
-    marginLeft: 8,
-  },
-  faqItem: {
-    padding: 12,
-  },
-  faqQuestion: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#16a34a',
-    marginBottom: 8,
-  },
-  faqAnswer: {
-    fontSize: 14,
-    color: '#666',
-    lineHeight: 20,
-  },
-  videoItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    borderRadius: 8,
-  },
-  videoThumbnail: {
-    width: 80,
-    height: 60,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  videoPlayIcon: {
-    fontSize: 20,
-  },
-  videoContent: {
-    flex: 1,
-  },
-  videoTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#333',
-    marginBottom: 4,
-  },
-  videoDuration: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  durationIcon: {
-    fontSize: 12,
-    marginRight: 4,
-  },
-  durationText: {
-    fontSize: 14,
-    color: '#666',
-  },
-  videoPlayButton: {
-    fontSize: 20,
-    color: '#16a34a',
-    marginLeft: 8,
-  },
-  guideItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    borderRadius: 8,
-  },
-  guideIcon: {
-    width: 40,
-    height: 40,
-    backgroundColor: '#dcfce7',
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  guideIconText: {
-    fontSize: 18,
-  },
-  guideContent: {
-    flex: 1,
-  },
-  guideTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#333',
-    marginBottom: 2,
-  },
-  guideDescription: {
-    fontSize: 14,
-    color: '#666',
-  },
-  guideArrow: {
-    fontSize: 18,
-    color: '#999',
-    marginLeft: 8,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#f0f0f0',
-    marginHorizontal: 12,
-  },
-  reportButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#fef2f2',
-    borderWidth: 1,
-    borderColor: '#fecaca',
-    borderRadius: 12,
-    padding: 16,
-    marginTop: 8,
-  },
-  reportButtonIcon: {
-    fontSize: 18,
-    marginRight: 8,
-  },
-  reportButtonText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#dc2626',
-  },
-});
 
 export default HelpSupportScreen;

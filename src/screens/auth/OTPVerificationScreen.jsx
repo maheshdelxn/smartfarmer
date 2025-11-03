@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
-import AuthService from '../../services/AuthService';
+
  
 const OTPVerificationScreen = () => {
   const navigation = useNavigation();
@@ -63,47 +63,34 @@ const OTPVerificationScreen = () => {
   };
  
   const verifyOTP = async () => {
-    if (!otp || otp.length !== 6) {
-      Alert.alert('Error', 'Please enter a 6-digit OTP');
-      return;
-    }
- 
-    setIsLoading(true);
- 
-    try {
-      console.log('Verifying OTP:', { mobileNumber, otp });
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      // Create mock user data
-      const mockUserData = {
-        id: Math.random().toString(36).substr(2, 9),
-        name: `Farmer ${mobileNumber}`,
-        mobileNumber: mobileNumber,
-        aadhaarNumber: 'XXXX XXXX XXXX',
-        contactNumber: mobileNumber,
-        village: 'Demo Village',
-        taluka: 'Demo Taluka',
-        district: 'Demo District',
-        pincode: '123456',
-        token: 'demo-token-' + Math.random().toString(36).substr(2, 16),
-        createdAt: new Date().toISOString(),
-      };
- 
-      // Save user data to local storage
-      await AuthService.saveUserData(mockUserData);
-      console.log('OTP verification successful for mobile:', mobileNumber);
-      // Navigate to home screen
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'MainApp' }],
-      });
-    } catch (error) {
-      console.error('OTP verification error:', error);
-      Alert.alert('Error', 'OTP verification failed. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  if (!otp || otp.length !== 6) {
+    Alert.alert('Error', 'Please enter a 6-digit OTP');
+    return;
+  }
+
+  setIsLoading(true);
+
+  try {
+    console.log('Verifying OTP:', { mobileNumber, otp });
+    
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    console.log('OTP verification successful for mobile:', mobileNumber);
+    
+    // Navigate directly without storing any data
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'MainApp' }],
+    });
+    
+  } catch (error) {
+    console.error('OTP verification error:', error);
+    Alert.alert('Error', 'OTP verification failed. Please try again.');
+  } finally {
+    setIsLoading(false);
+  }
+};
  
   const resendOTP = async () => {
     setIsLoading(true);

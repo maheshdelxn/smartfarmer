@@ -4,19 +4,18 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Image,
   Alert,
   Animated,
   RefreshControl,
 } from 'react-native';
-// Correct import
 import { LinearGradient } from 'expo-linear-gradient';
+import { useNavigation } from '@react-navigation/native';
 
 
-const ProfileScreen = ({ navigation }) => {
+const ProfileScreen = () => {
+  const navigation = useNavigation();
   const [profileData, setProfileData] = useState(null);
   const [totalCrops, setTotalCrops] = useState(0);
   const [totalArea, setTotalArea] = useState(0);
@@ -91,89 +90,87 @@ const ProfileScreen = ({ navigation }) => {
     return (
       <LinearGradient
         colors={['#4CAF50', '#2E7D32']}
-        style={styles.profileHeader}
+        className="px-6 py-6 items-center"
       >
-        <View style={styles.profileAvatarContainer}>
-          <View style={styles.profileAvatar}>
-            <Text style={styles.profileAvatarText}>
+        <View className="mb-4">
+          <View className="w-25 h-25 rounded-3xl bg-white/20 border-2 border-white/30 justify-center items-center">
+            <Text className="text-3xl font-bold text-white">
               {displayName.substring(0, 2).toUpperCase()}
             </Text>
           </View>
         </View>
         
-        <Text style={styles.profileName}>{displayName}</Text>
+        <Text className="text-2xl font-bold text-white mb-2">{displayName}</Text>
         
-        <View style={styles.aadhaarBadge}>
-          <Text style={styles.aadhaarText}>
+        <View className="bg-white/20 px-4 py-2 rounded-full mb-5">
+          <Text className="text-sm text-white font-medium">
             {displayAadhaar || 'No Aadhaar'}
           </Text>
         </View>
         
-        <View style={styles.profileActions}>
-        <TouchableOpacity 
-          style={styles.viewButton}
-          onPress={() => navigation.navigate('ProfileView')}
-        >
-          <Text style={styles.viewButtonText}>View Profile</Text>
-        </TouchableOpacity>
-      </View>
+        <View className="flex-row w-full">
+          <TouchableOpacity 
+            className="flex-1 bg-white rounded-2xl py-4 items-center"
+            onPress={() => navigation.navigate('ProfileView')}
+          >
+            <Text className="text-green-700 text-base font-semibold">View Profile</Text>
+          </TouchableOpacity>
+        </View>
       </LinearGradient>
     );
   };
 
   const buildStatsCards = () => (
-    <View style={styles.statsContainer}>
-      <View style={styles.statCard}>
-        <View style={[styles.statIcon, { backgroundColor: '#4CAF5010' }]}>
-          <Text style={[styles.statIconText, { color: '#4CAF50' }]}>🌱</Text>
+    <View className="flex-row mb-8">
+      <View className="flex-1 bg-white p-5 rounded-2xl items-center mx-2 shadow-lg">
+        <View className="w-12 h-12 bg-green-50 rounded-2xl justify-center items-center mb-3">
+          <Text className="text-2xl text-green-500">🌱</Text>
         </View>
-        <Text style={styles.statValue}>{totalCrops}</Text>
-        <Text style={styles.statLabel}>Total Crops</Text>
+        <Text className="text-xl font-bold text-gray-800 mb-1">{totalCrops}</Text>
+        <Text className="text-xs text-gray-500 font-medium">Total Crops</Text>
       </View>
       
-      <View style={styles.statCard}>
-        <View style={[styles.statIcon, { backgroundColor: '#2196F310' }]}>
-          <Text style={[styles.statIconText, { color: '#2196F3' }]}>🌾</Text>
+      <View className="flex-1 bg-white p-5 rounded-2xl items-center mx-2 shadow-lg">
+        <View className="w-12 h-12 bg-blue-50 rounded-2xl justify-center items-center mb-3">
+          <Text className="text-2xl text-blue-500">🌾</Text>
         </View>
-        <Text style={styles.statValue}>{totalArea} acres</Text>
-        <Text style={styles.statLabel}>Total Area</Text>
+        <Text className="text-xl font-bold text-gray-800 mb-1">{totalArea} acres</Text>
+        <Text className="text-xs text-gray-500 font-medium">Total Area</Text>
       </View>
     </View>
   );
 
   const buildSettingsList = () => (
-    <View style={styles.settingsContainer}>
+    <View className="bg-white rounded-2xl shadow-lg mb-8">
       <SettingTile
         icon="🌐"
         title="Language"
         subtitle="English"
         onPress={() => showLanguageDialog()}
       />
-      <View style={styles.divider} />
+      <View className="h-px bg-gray-100 mx-5" />
       <SettingTile
         icon="🔔"
         title="Notifications"
         trailing={
           <TouchableOpacity onPress={() => setNotificationsEnabled(!notificationsEnabled)}>
-            <View style={[
-              styles.switch,
-              notificationsEnabled ? styles.switchOn : styles.switchOff
-            ]}>
-              <View style={[
-                styles.switchThumb,
-                notificationsEnabled ? styles.switchThumbOn : styles.switchThumbOff
-              ]} />
+            <View className={`w-12 h-7 rounded-2xl p-1 ${
+              notificationsEnabled ? 'bg-green-500' : 'bg-gray-300'
+            }`}>
+              <View className={`w-6 h-6 rounded-full bg-white ${
+                notificationsEnabled ? 'translate-x-5' : 'translate-x-0'
+              }`} />
             </View>
           </TouchableOpacity>
         }
       />
-      <View style={styles.divider} />
+      <View className="h-px bg-gray-100 mx-5" />
       <SettingTile
         icon="❓"
         title="Help & Support"
         onPress={() => navigation.navigate('HelpSupport')}
       />
-      <View style={styles.divider} />
+      <View className="h-px bg-gray-100 mx-5" />
       <SettingTile
         icon="ℹ️"
         title="About"
@@ -183,15 +180,15 @@ const ProfileScreen = ({ navigation }) => {
   );
 
   const SettingTile = ({ icon, title, subtitle, trailing, onPress }) => (
-    <TouchableOpacity style={styles.settingTile} onPress={onPress}>
-      <View style={styles.settingIcon}>
-        <Text style={styles.settingIconText}>{icon}</Text>
+    <TouchableOpacity className="flex-row items-center p-5" onPress={onPress}>
+      <View className="w-10 h-10 bg-green-50 rounded-2xl justify-center items-center">
+        <Text className="text-xl">{icon}</Text>
       </View>
-      <View style={styles.settingContent}>
-        <Text style={styles.settingTitle}>{title}</Text>
-        {subtitle && <Text style={styles.settingSubtitle}>{subtitle}</Text>}
+      <View className="flex-1 ml-4">
+        <Text className="text-base font-semibold text-green-800">{title}</Text>
+        {subtitle && <Text className="text-sm text-gray-500 mt-1">{subtitle}</Text>}
       </View>
-      {trailing || <Text style={styles.settingArrow}>›</Text>}
+      {trailing || <Text className="text-base text-gray-400">›</Text>}
     </TouchableOpacity>
   );
 
@@ -230,7 +227,7 @@ const ProfileScreen = ({ navigation }) => {
   };
 
   return (
-    <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
+    <Animated.View className="flex-1 bg-green-50" style={{ opacity: fadeAnim }}>
       <ScrollView
         refreshControl={
           <RefreshControl
@@ -239,247 +236,31 @@ const ProfileScreen = ({ navigation }) => {
             colors={['#4CAF50']}
           />
         }
-        style={styles.scrollView}
+        className="flex-1"
       >
         {buildProfileHeader()}
-        <View style={styles.content}>
+        <View className="p-5">
           {buildStatsCards()}
           
-          <View style={styles.sectionHeader}>
-            <View style={styles.sectionIcon}>
-              <Text style={styles.sectionIconText}>⚙️</Text>
+          <View className="flex-row items-center mb-4">
+            <View className="bg-green-50 p-2 rounded-2xl">
+              <Text className="text-base">⚙️</Text>
             </View>
-            <Text style={styles.sectionTitle}>Settings</Text>
+            <Text className="text-xl font-bold text-green-900 ml-3">Settings</Text>
           </View>
           
           {buildSettingsList()}
           
           <TouchableOpacity 
-            style={styles.logoutButton}
+            className="bg-red-500 rounded-2xl py-4 items-center shadow-lg shadow-red-500/30"
             onPress={handleLogout}
           >
-            <Text style={styles.logoutButtonText}>🚪 Logout</Text>
+            <Text className="text-white text-base font-semibold">🚪 Logout</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
     </Animated.View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8FFFE',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  content: {
-    padding: 20,
-  },
-  profileHeader: {
-    padding: 24,
-    alignItems: 'center',
-  },
-  profileAvatarContainer: {
-    marginBottom: 16,
-  },
-  profileAvatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 30,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderWidth: 3,
-    borderColor: 'rgba(255,255,255,0.3)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  profileAvatarText: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    color: 'white',
-  },
-  profileName: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: 'white',
-    marginBottom: 8,
-  },
-  aadhaarBadge: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginBottom: 20,
-  },
-  aadhaarText: {
-    fontSize: 14,
-    color: 'white',
-    fontWeight: '500',
-  },
-  profileActions: {
-    flexDirection: 'row',
-    width: '100%',
-  },
-  viewButton: {
-    flex: 1,
-    backgroundColor: 'white',
-    borderRadius: 16,
-    paddingVertical: 16,
-    alignItems: 'center',
-  },
-  viewButtonText: {
-    color: '#2E7D32',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    marginBottom: 32,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 20,
-    alignItems: 'center',
-    marginHorizontal: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.06,
-    shadowRadius: 15,
-    elevation: 3,
-  },
-  statIcon: {
-    width: 50,
-    height: 50,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  statIconText: {
-    fontSize: 26,
-  },
-  statValue: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#666',
-    fontWeight: '500',
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  sectionIcon: {
-    backgroundColor: '#4CAF5010',
-    padding: 8,
-    borderRadius: 12,
-  },
-  sectionIconText: {
-    fontSize: 16,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1B5E20',
-    marginLeft: 12,
-  },
-  settingsContainer: {
-    backgroundColor: 'white',
-    borderRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.06,
-    shadowRadius: 15,
-    elevation: 3,
-    marginBottom: 32,
-  },
-  settingTile: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 20,
-  },
-  settingIcon: {
-    width: 40,
-    height: 40,
-    backgroundColor: '#4CAF5010',
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  settingIconText: {
-    fontSize: 20,
-  },
-  settingContent: {
-    flex: 1,
-    marginLeft: 16,
-  },
-  settingTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1B5E20',
-  },
-  settingSubtitle: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 4,
-  },
-  settingArrow: {
-    fontSize: 16,
-    color: '#999',
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#f0f0f0',
-    marginHorizontal: 20,
-  },
-  switch: {
-    width: 50,
-    height: 28,
-    borderRadius: 14,
-    padding: 2,
-  },
-  switchOn: {
-    backgroundColor: '#4CAF50',
-  },
-  switchOff: {
-    backgroundColor: '#ccc',
-  },
-  switchThumb: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: 'white',
-  },
-  switchThumbOn: {
-    transform: [{ translateX: 22 }],
-  },
-  switchThumbOff: {
-    transform: [{ translateX: 0 }],
-  },
-  logoutButton: {
-    backgroundColor: '#FF5252',
-    borderRadius: 20,
-    paddingVertical: 18,
-    alignItems: 'center',
-    shadowColor: '#FF5252',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 15,
-    elevation: 5,
-  },
-  logoutButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-});
 
 export default ProfileScreen;
