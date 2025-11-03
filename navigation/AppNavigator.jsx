@@ -5,14 +5,18 @@ import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 
 // Import all your screens
 import HomeScreen from "../src/screens/Home/HomeScreen";
+import CropDetailsScreen from "../src/screens/Home/add_crop"
 import CropScreen from "../src/screens/Crop/CropScreen";
 import ProfileScreen from "../src/screens/Profile/ProfileScreen";
+import MyCropsScreen from "../src/screens/Crop/CropScreen";
+import CropDetailViewScreen from "@/screens/Crop/CropDetailViewScreen";
+import FarmerRegistrationScreen from '../src/screens/auth/FarmerRegistrationScreen'
+import OTPVerificationScreen from '../src/screens/auth/OTPVerificationScreen';
+import LoginScreen from '../src/screens/auth/LoginScreen';
 import ProfileViewScreen from "../src/screens/Profile/ProfileViewScreen";
-import HelpSupportScreen from "../src/screens/Profile/HelpSupportScreen"; // Add this import
+import HelpSupportScreen from "../src/screens/Profile/HelpSupportScreen";
 import AboutScreen from "../src/screens/Profile/AboutScreen";
-import LoginScreen from "../src/screens/auth/LoginScreen";
-import OTPVerificationScreen from "../src/screens/auth/OTPVerificationScreen";
-import FarmerRegistrationScreen from "../src/screens/auth/FarmerRegistrationScreen";
+
 
 // Create stack navigators for each tab
 const HomeStack = createStackNavigator();
@@ -26,6 +30,7 @@ function HomeStackScreen() {
   return (
     <HomeStack.Navigator screenOptions={{ headerShown: false }}>
       <HomeStack.Screen name="HomeMain" component={HomeScreen} />
+      <HomeStack.Screen name="Crop Details" component={CropDetailsScreen}/>
     </HomeStack.Navigator>
   );
 }
@@ -34,7 +39,9 @@ function HomeStackScreen() {
 function CropStackScreen() {
   return (
     <CropStack.Navigator screenOptions={{ headerShown: false }}>
-      <CropStack.Screen name="CropMain" component={CropScreen} />
+      <CropStack.Screen name="CropMain" component={MyCropsScreen} />
+      <CropStack.Screen name="Crop Details" component={CropDetailsScreen}/>
+      <CropStack.Screen name="Crop Information" component={CropDetailViewScreen}/>
     </CropStack.Navigator>
   );
 }

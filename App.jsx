@@ -5,6 +5,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import AppNavigator from "./navigation/AppNavigator";
 import "./global.css";
+import Header from '@/components/Header';
 
 export default function App() {
   return (
@@ -12,6 +13,7 @@ export default function App() {
       <SafeAreaProvider>
         <NavigationContainer>
           <View style={{ flex: 1 }}>
+            <Header/>
             <AppNavigator />
           </View>
         </NavigationContainer>

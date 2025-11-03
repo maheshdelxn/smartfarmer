@@ -1,4 +1,4 @@
-// C:\Users\ADMIN\Desktop\SM-MOBILE\smartfarmer\src\screens\Profile\HelpSupportScreen.jsx
+// C:\Users\ADMIN\Desktop\SM-MOBILE\smartfarmer\src\screens\Profile\ProfileScreen.jsx
 
 import React, { useState, useEffect, useRef } from 'react';
 import {
@@ -12,9 +12,9 @@ import {
   Animated,
   RefreshControl,
 } from 'react-native';
+// Correct import
 import { LinearGradient } from 'expo-linear-gradient';
-import ApiService from '../../services/ApiService';
-import AuthService from '../../services/AuthService';
+
 
 const ProfileScreen = ({ navigation }) => {
   const [profileData, setProfileData] = useState(null);

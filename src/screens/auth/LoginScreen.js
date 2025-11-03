@@ -16,6 +16,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import ApiService from '../../services/ApiService';
 import AuthService from '../../services/AuthService';
 
+
 const AppTheme = {
   primaryColor: '#2E7D32',
   backgroundColor: '#FFFFFF',
