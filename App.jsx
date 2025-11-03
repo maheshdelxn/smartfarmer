@@ -13,7 +13,7 @@ export default function App() {
           {/* Header stays at top safely within device notch area */}
           <Header />
           <AppNavigator />
-       
+         
       </NavigationContainer>
   
   );
