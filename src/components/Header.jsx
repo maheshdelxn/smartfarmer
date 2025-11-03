@@ -1,4 +1,4 @@
-// components/Header.jsx
+// C:\Users\ADMIN\Desktop\SM-MOBILE\smartfarmer\src\components\Header.jsx
 import { View, Text, Image } from "react-native";
 
 export default function Header() {

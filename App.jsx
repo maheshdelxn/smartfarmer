@@ -1,20 +1,21 @@
-// App.jsx
+import React from 'react';
+import { View } from 'react-native';
 import { NavigationContainer } from "@react-navigation/native";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import AppNavigator from "./navigation/AppNavigator";
-import Header from "./src/components/Header";
 import "./global.css";
 
 export default function App() {
   return (
- 
-      <NavigationContainer>
-        
-          {/* Header stays at top safely within device notch area */}
-          <Header />
-          <AppNavigator />
-       
-      </NavigationContainer>
-  
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <NavigationContainer>
+          <View style={{ flex: 1 }}>
+            <AppNavigator />
+          </View>
+        </NavigationContainer>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
