@@ -7,6 +7,8 @@ import HomeScreen from "../src/screens/Home/HomeScreen";
 import CropDetailsScreen from "../src/screens/Home/add_crop"
 import CropScreen from "../src/screens/Crop/CropScreen";
 import ProfileScreen from "../src/screens/Profile/ProfileScreen";
+import MyCropsScreen from "../src/screens/Crop/CropScreen";
+import CropDetailViewScreen from "@/screens/Crop/CropDetailViewScreen";
 
 const HomeStack = createStackNavigator();
 const CropStack = createStackNavigator();
@@ -26,7 +28,9 @@ function HomeStackScreen() {
 function CropStackScreen() {
   return (
     <CropStack.Navigator screenOptions={{ headerShown: false }}>
-      <CropStack.Screen name="CropMain" component={CropScreen} />
+      <CropStack.Screen name="CropMain" component={MyCropsScreen} />
+      <CropStack.Screen name="Crop Details" component={CropDetailsScreen}/>
+      <CropStack.Screen name="Crop Information" component={CropDetailViewScreen}/>
     </CropStack.Navigator>
   );
 }
@@ -86,3 +90,5 @@ export default function AppNavigator() {
     </Tab.Navigator>
   );
 }
+
+// navigation/AppNavigator.jsx
