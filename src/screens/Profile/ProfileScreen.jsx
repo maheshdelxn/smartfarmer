@@ -155,55 +155,42 @@ const ProfileScreen = () => {
   );
 
   const buildSettingsList = () => (
-    <View className="mx-4 mb-4">
-      <View className="flex-row items-center mb-3">
-        <View className="w-10 h-10 bg-green-100 rounded-xl items-center justify-center mr-2">
-          <Ionicons name="settings" size={20} color="#16a34a" />
-        </View>
-        <Text className="text-green-800 text-xl font-semibold">Settings</Text>
-      </View>
-
-      <View className="bg-white rounded-3xl shadow-sm overflow-hidden">
-        <SettingTile
-          icon="globe"
-          title="Language"
-          subtitle="English"
-          onPress={() => showLanguageDialog()}
-        />
-        <View className="h-px bg-gray-100 mx-5" />
-        <SettingTile
-          icon="bell"
-          title="Notifications"
-          
-          subtitle={notificationsEnabled ? "Enabled" : "Disabled"}
-          trailing={
-            <TouchableOpacity onPress={() => setNotificationsEnabled(!notificationsEnabled)}
-            >
-              <View className={`w-14 h-8 rounded-full p-1 ${
-                notificationsEnabled ? 'bg-green-600' : 'bg-gray-300'
-              }`}>
-                <View className={`w-6 h-6 rounded-full bg-white shadow-sm ${
-                  notificationsEnabled ? 'translate-x-6' : 'translate-x-0'
-                }`} />
-              </View>
-            </TouchableOpacity>
-          }
-        />
-        <View className="h-px bg-gray-100 mx-5" />
-        <SettingTile
-          icon="help-circle"
-          title="Help & Support"
-          subtitle="Get assistance"
-          onPress={() => navigation.navigate('HelpSupport')}
-        />
-        <View className="h-px bg-gray-100 mx-5" />
-        <SettingTile
-          icon="information-circle"
-          title="About"
-          subtitle="App information"
-          onPress={() => navigation.navigate('About')}
-        />
-      </View>
+    <View className="bg-white rounded-2xl shadow-lg mb-8">
+      <SettingTile
+        icon="🌐"
+        title="Language"
+        subtitle="English"
+        onPress={() => showLanguageDialog()}
+      />
+      <View className="h-px bg-gray-100 mx-5" />
+      <SettingTile
+        icon="🔔"
+        title="Notifications"
+        onPress={() => navigation.navigate('NotificationScreen')}
+        trailing={
+          <TouchableOpacity onPress={() => setNotificationsEnabled(!notificationsEnabled)}>
+            <View className={`w-12 h-7 rounded-2xl p-1 ${
+              notificationsEnabled ? 'bg-green-500' : 'bg-gray-300'
+            }`}>
+              <View className={`w-6 h-6 rounded-full bg-white ${
+                notificationsEnabled ? 'translate-x-5' : 'translate-x-0'
+              }`} />
+            </View>
+          </TouchableOpacity>
+        }
+      />
+      <View className="h-px bg-gray-100 mx-5" />
+      <SettingTile
+        icon="❓"
+        title="Help & Support"
+        onPress={() => navigation.navigate('HelpSupport')}
+      />
+      <View className="h-px bg-gray-100 mx-5" />
+      <SettingTile
+        icon="ℹ️"
+        title="About"
+        onPress={() => navigation.navigate('About')}
+      />
     </View>
   );
 
