@@ -16,6 +16,7 @@ import LoginScreen from '../src/screens/auth/LoginScreen';
 import ProfileViewScreen from "../src/screens/Profile/ProfileViewScreen";
 import HelpSupportScreen from "../src/screens/Profile/HelpSupportScreen";
 import AboutScreen from "../src/screens/Profile/AboutScreen";
+import NotificationScreen from '../src/screens/Profile/NotificationScreen';
 
 
 // Create stack navigators for each tab
@@ -54,6 +55,7 @@ function ProfileStackScreen() {
       <ProfileStack.Screen name="ProfileView" component={ProfileViewScreen} />
       <ProfileStack.Screen name="HelpSupport" component={HelpSupportScreen} />
       <ProfileStack.Screen name="About" component={AboutScreen} />
+      <Stack.Screen name="NotificationScreen" component={NotificationScreen} />
     </ProfileStack.Navigator>
   );
 }

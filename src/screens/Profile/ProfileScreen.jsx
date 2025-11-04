@@ -174,9 +174,11 @@ const ProfileScreen = () => {
         <SettingTile
           icon="bell"
           title="Notifications"
+          
           subtitle={notificationsEnabled ? "Enabled" : "Disabled"}
           trailing={
-            <TouchableOpacity onPress={() => setNotificationsEnabled(!notificationsEnabled)}>
+            <TouchableOpacity onPress={() => setNotificationsEnabled(!notificationsEnabled)}
+            >
               <View className={`w-14 h-8 rounded-full p-1 ${
                 notificationsEnabled ? 'bg-green-600' : 'bg-gray-300'
               }`}>
