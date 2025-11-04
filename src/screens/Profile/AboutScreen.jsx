@@ -2,7 +2,6 @@ import React from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   TouchableOpacity,
   Alert,
@@ -11,71 +10,101 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useNavigation } from '@react-navigation/native';
+import { MaterialCommunityIcons, Feather, Ionicons } from '@expo/vector-icons';
 
-const AboutScreen = ({ navigation }) => {
+const AboutScreen = () => {
+  const navigation = useNavigation();
+  
   // App constants
   const appVersion = '1.0.0';
   const buildNumber = '123';
 
   // Section Component
-  const Section = ({ title, icon, content, children }) => (
-    <View style={styles.section}>
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionIcon}>{icon}</Text>
-        <Text style={styles.sectionTitle}>{title}</Text>
+  const Section = ({ title, icon, iconType = "MaterialCommunityIcons", content, children }) => {
+    const IconComponent = 
+      iconType === 'MaterialCommunityIcons' ? MaterialCommunityIcons :
+      iconType === 'Feather' ? Feather : Ionicons;
+
+    return (
+      <View className="mb-4">
+        <View className="flex-row items-center mb-3">
+          <View className="w-10 h-10 bg-green-100 rounded-xl items-center justify-center mr-2">
+            <IconComponent name={icon} size={20} color="#16a34a" />
+          </View>
+          <Text className="text-xl font-semibold text-green-800">{title}</Text>
+        </View>
+        <View className="bg-white rounded-3xl p-5 shadow-sm">
+          {content ? (
+            <Text className="text-sm text-gray-600 leading-6 text-justify">{content}</Text>
+          ) : null}
+          {children}
+        </View>
       </View>
-      {content ? (
-        <Text style={styles.sectionContent}>{content}</Text>
-      ) : null}
-      {children}
-    </View>
-  );
+    );
+  };
 
   // Feature Item Component
-  const FeatureItem = ({ icon, text }) => (
-    <View style={styles.featureItem}>
-      <Text style={styles.featureIcon}>{icon}</Text>
-      <Text style={styles.featureText}>{text}</Text>
-    </View>
-  );
+  const FeatureItem = ({ icon, iconType = "MaterialCommunityIcons", text }) => {
+    const IconComponent = 
+      iconType === 'MaterialCommunityIcons' ? MaterialCommunityIcons :
+      iconType === 'Feather' ? Feather : Ionicons;
+
+    return (
+      <View className="flex-row items-center py-3">
+        <View className="w-10 h-10 bg-green-50 rounded-xl items-center justify-center mr-3">
+          <IconComponent name={icon} size={20} color="#16a34a" />
+        </View>
+        <Text className="text-sm text-gray-700 flex-1">{text}</Text>
+      </View>
+    );
+  };
 
   // Contact Item Component
-  const ContactItem = ({ icon, label, value }) => (
-    <View style={styles.contactItem}>
-      <Text style={styles.contactIcon}>{icon}</Text>
-      <View style={styles.contactContent}>
-        <Text style={styles.contactLabel}>{label}</Text>
-        <Text style={styles.contactValue}>{value}</Text>
+  const ContactItem = ({ icon, iconType = "Ionicons", label, value }) => {
+    const IconComponent = 
+      iconType === 'MaterialCommunityIcons' ? MaterialCommunityIcons :
+      iconType === 'Feather' ? Feather : Ionicons;
+
+    return (
+      <View className="flex-row items-start py-3">
+        <View className="w-10 h-10 bg-green-50 rounded-xl items-center justify-center mr-3">
+          <IconComponent name={icon} size={20} color="#16a34a" />
+        </View>
+        <View className="flex-1">
+          <Text className="text-xs text-gray-500 mb-1">{label}</Text>
+          <Text className="text-sm font-medium text-gray-700">{value}</Text>
+        </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   // Social Media Links Component
   const SocialMediaLinks = () => (
-    <View style={styles.socialMediaContainer}>
+    <View className="flex-row justify-center gap-3">
       <TouchableOpacity 
-        style={styles.socialButton}
+        className="w-14 h-14 bg-blue-500 rounded-2xl justify-center items-center shadow-sm"
         onPress={() => launchSocialMedia('facebook')}
       >
-        <Text style={styles.socialIcon}>📘</Text>
+        <Ionicons name="logo-facebook" size={28} color="white" />
       </TouchableOpacity>
       <TouchableOpacity 
-        style={styles.socialButton}
+        className="w-14 h-14 bg-blue-400 rounded-2xl justify-center items-center shadow-sm"
         onPress={() => launchSocialMedia('twitter')}
       >
-        <Text style={styles.socialIcon}>🐦</Text>
+        <Ionicons name="logo-twitter" size={28} color="white" />
       </TouchableOpacity>
       <TouchableOpacity 
-        style={styles.socialButton}
+        className="w-14 h-14 bg-pink-500 rounded-2xl justify-center items-center shadow-sm"
         onPress={() => launchSocialMedia('instagram')}
       >
-        <Text style={styles.socialIcon}>📷</Text>
+        <Ionicons name="logo-instagram" size={28} color="white" />
       </TouchableOpacity>
       <TouchableOpacity 
-        style={styles.socialButton}
+        className="w-14 h-14 bg-red-500 rounded-2xl justify-center items-center shadow-sm"
         onPress={() => launchSocialMedia('youtube')}
       >
-        <Text style={styles.socialIcon}>📺</Text>
+        <Ionicons name="logo-youtube" size={28} color="white" />
       </TouchableOpacity>
     </View>
   );
@@ -112,36 +141,45 @@ const AboutScreen = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView className="flex-1 bg-green-50">
       <StatusBar backgroundColor="#16a34a" barStyle="light-content" />
       
       {/* Custom Header */}
       <LinearGradient
-        colors={['#16a34a', '#22c55e']}
-        style={styles.header}
+        colors={['#16a34a', '#15803d']}
+        className="pt-3 pb-4"
       >
-        <View style={styles.headerContent}>
-          <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-            <Text style={styles.backButtonText}>←</Text>
+        <View className="flex-row items-center justify-between px-4">
+          <TouchableOpacity 
+            className="w-10 h-10 bg-white/20 rounded-xl justify-center items-center"
+            onPress={handleBack}
+          >
+            <Ionicons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>About</Text>
-          <View style={styles.headerPlaceholder} />
+          <Text className="text-white text-xl font-semibold">About</Text>
+          <View className="w-10" />
         </View>
       </LinearGradient>
 
       <ScrollView 
-        style={styles.scrollView}
+        className="flex-1"
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.content}>
+        <View className="px-4 py-4">
           {/* App Logo and Basic Info */}
-          <View style={styles.logoCard}>
-            <Text style={styles.logoIcon}>🌾</Text>
-            <Text style={styles.appTitle}>Smart Farmer</Text>
-            <Text style={styles.appVersion}>
-              Version {appVersion} (Build {buildNumber})
+          <View className="bg-white rounded-3xl p-6 items-center shadow-sm mb-4">
+            <View className="w-24 h-24 bg-green-600 rounded-3xl items-center justify-center mb-4">
+              <MaterialCommunityIcons name="sprout" size={56} color="white" />
+            </View>
+            <Text className="text-2xl font-bold text-gray-800 text-center mb-2">
+              Smart Farmer
             </Text>
-            <Text style={styles.appTagline}>
+            <View className="bg-green-50 px-4 py-2 rounded-xl mb-3">
+              <Text className="text-sm text-green-700 font-medium">
+                Version {appVersion} (Build {buildNumber})
+              </Text>
+            </View>
+            <Text className="text-base text-gray-500 italic text-center">
               Empowering farmers with smart technology
             </Text>
           </View>
@@ -149,37 +187,46 @@ const AboutScreen = ({ navigation }) => {
           {/* App Description */}
           <Section
             title="About App"
-            icon="ℹ️"
+            icon="information-circle"
+            iconType="Ionicons"
+         
             content="Smart Farmer is a comprehensive mobile application designed to modernize farming practices. Our app provides farmers with real-time insights, market prices, weather alerts, and expert farming tips to maximize productivity and profitability."
           />
 
           {/* Key Features */}
           <Section
             title="Key Features"
-            icon="⭐"
+            icon="star"
+            iconType="Ionicons"
           >
             <FeatureItem
-              icon="🌱"
+              icon="sprout"
+              iconType="MaterialCommunityIcons"
               text="Crop Tracking & Management"
             />
             <FeatureItem
-              icon="💰"
+              icon="cash"
+              iconType="Ionicons"
               text="Real-time Market Prices"
             />
             <FeatureItem
-              icon="🌤️"
+              icon="partly-sunny"
+              iconType="Ionicons"
               text="Weather Alerts & Forecasts"
             />
             <FeatureItem
-              icon="📚"
+              icon="book"
+              iconType="Feather"
               text="Expert Farming Tips"
             />
             <FeatureItem
-              icon="🤖"
+              icon="brain"
+              iconType="MaterialCommunityIcons"
               text="AI-powered Insights"
             />
             <FeatureItem
-              icon="📊"
+              icon="bar-chart"
+              iconType="Feather"
               text="Yield Analysis & Reports"
             />
           </Section>
@@ -187,257 +234,70 @@ const AboutScreen = ({ navigation }) => {
           {/* Development Team */}
           <Section
             title="Development Team"
-            icon="👨‍💻"
+            icon="people"
+            iconType="Ionicons"
             content="Smart Farmer is developed by a passionate team of agricultural experts, software engineers, and data scientists dedicated to revolutionizing farming through technology. Our mission is to make advanced farming tools accessible to every farmer."
           />
 
           {/* Contact Information */}
           <Section
             title="Contact Us"
-            icon="📞"
+            icon="phone"
+            iconType="Feather"
           >
             <ContactItem
-              icon="📧"
+              icon="mail"
+              iconType="Ionicons"
               label="Email"
               value="support@smartfarmer.com"
             />
             <ContactItem
-              icon="📱"
+              icon="call"
+              iconType="Ionicons"
               label="Phone"
               value="+1 (555) 123-4567"
             />
             <ContactItem
-              icon="📍"
+              icon="location"
+              iconType="Ionicons"
               label="Address"
               value="Agricultural Tech Park, Farmville"
             />
             <ContactItem
-              icon="🌐"
+              icon="globe"
+              iconType="Feather"
               label="Website"
               value="www.smartfarmer.com"
             />
           </Section>
 
           {/* Social Media Links */}
-          <View style={styles.socialSection}>
-            <Text style={styles.socialTitle}>Follow Us</Text>
-            <SocialMediaLinks />
+          <View className="mb-4">
+            <View className="flex-row items-center mb-3">
+              <View className="w-10 h-10 bg-green-100 rounded-xl items-center justify-center mr-2">
+                <Ionicons name="share-social" size={20} color="#16a34a" />
+              </View>
+              <Text className="text-xl font-semibold text-green-800">Follow Us</Text>
+            </View>
+            <View className="bg-white rounded-3xl p-6 shadow-sm items-center">
+              <SocialMediaLinks />
+            </View>
           </View>
 
           {/* Legal Information */}
           <TouchableOpacity 
-            style={styles.legalButton}
+            className="bg-white border-2 border-green-600 rounded-3xl p-5 items-center shadow-sm flex-row justify-center"
             onPress={showLicenseDialog}
           >
-            <Text style={styles.legalButtonText}>Terms & Privacy Policy</Text>
+            <Ionicons name="document-text" size={20} color="#16a34a" />
+            <Text className="text-green-700 text-base font-semibold ml-2">Terms & Privacy Policy</Text>
           </TouchableOpacity>
+
+          <View className="h-6" />
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8FFFE',
-  },
-  header: {
-    paddingTop: 50,
-    paddingBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
-  },
-  headerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  backButtonText: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  headerTitle: {
-    color: 'white',
-    fontSize: 20,
-    fontWeight: '600',
-  },
-  headerPlaceholder: {
-    width: 40,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  content: {
-    padding: 20,
-  },
-  logoCard: {
-    backgroundColor: 'white',
-    borderRadius: 15,
-    padding: 24,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
-    marginBottom: 24,
-  },
-  logoIcon: {
-    fontSize: 80,
-    marginBottom: 16,
-  },
-  appTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#166534',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  appVersion: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 12,
-  },
-  appTagline: {
-    fontSize: 16,
-    color: '#666',
-    fontStyle: 'italic',
-    textAlign: 'center',
-  },
-  section: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  sectionIcon: {
-    fontSize: 20,
-    marginRight: 8,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  sectionContent: {
-    fontSize: 14,
-    color: '#666',
-    lineHeight: 20,
-    textAlign: 'justify',
-  },
-  featureItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  featureIcon: {
-    fontSize: 18,
-    marginRight: 12,
-    width: 24,
-  },
-  featureText: {
-    fontSize: 14,
-    color: '#333',
-    flex: 1,
-  },
-  contactItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    paddingVertical: 8,
-  },
-  contactIcon: {
-    fontSize: 16,
-    marginRight: 12,
-    width: 20,
-    marginTop: 2,
-  },
-  contactContent: {
-    flex: 1,
-  },
-  contactLabel: {
-    fontSize: 12,
-    color: '#666',
-    marginBottom: 2,
-  },
-  contactValue: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#333',
-  },
-  socialSection: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 20,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  socialTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 16,
-  },
-  socialMediaContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 16,
-  },
-  socialButton: {
-    width: 50,
-    height: 50,
-    backgroundColor: '#f0fdf4',
-    borderRadius: 25,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#dcfce7',
-  },
-  socialIcon: {
-    fontSize: 24,
-  },
-  legalButton: {
-    backgroundColor: 'transparent',
-    padding: 16,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#16a34a',
-    borderRadius: 12,
-    marginBottom: 20,
-  },
-  legalButtonText: {
-    color: '#16a34a',
-    fontSize: 16,
-    fontWeight: '500',
-  },
-});
 
 export default AboutScreen;

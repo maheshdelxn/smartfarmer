@@ -1,5 +1,3 @@
-// C:\Users\ADMIN\Desktop\SM-MOBILE\smartfarmer\src\screens\auth\LoginScreen.jsx
-
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
@@ -7,68 +5,16 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  StyleSheet,
   Alert,
   ActivityIndicator,
   Animated,
   Dimensions,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { Feather } from '@expo/vector-icons';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-
-const AppTheme = {
-  primaryColor: '#2E7D32',
-  backgroundColor: '#FFFFFF',
-  textPrimaryColor: '#000000',
-  textSecondaryColor: '#666666',
-  successColor: '#4CAF50',
-  errorColor: '#F44336',
-  infoColor: '#2196F3',
-};
-
-// Updated TextInputField with proper keyboard handling
-const TextInputField = ({
-  label,
-  value,
-  onChangeText,
-  placeholder,
-  icon,
-  keyboardType = 'default',
-  secureTextEntry = false,
-  maxLength,
-  editable = true,
-  inputRef,
-  returnKeyType = 'done',
-  onSubmitEditing = () => {},
-  blurOnSubmit = true
-}) => {
-  return (
-    <View style={styles.inputContainer}>
-      <Text style={styles.inputLabel}>{label}</Text>
-      <View style={styles.inputWrapper}>
-        <Icon name={icon} size={20} color={AppTheme.primaryColor} style={styles.inputIcon} />
-        <TextInput
-          ref={inputRef}
-          style={[
-            styles.textInput,
-            !editable && styles.disabledInput
-          ]}
-          value={value}
-          onChangeText={onChangeText}
-          placeholder={placeholder}
-          placeholderTextColor="#999"
-          keyboardType={keyboardType}
-          secureTextEntry={secureTextEntry}
-          maxLength={maxLength}
-          editable={editable}
-          returnKeyType={returnKeyType}
-          onSubmitEditing={onSubmitEditing}
-          blurOnSubmit={blurOnSubmit}
-        />
-      </View>
-    </View>
-  );
-};
 
 const LoginScreen = () => {
   const navigation = useNavigation();
@@ -77,7 +23,7 @@ const LoginScreen = () => {
   const [isLoading, setIsLoading] = useState(false);
   
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(30)).current;
+  const slideAnim = useRef(new Animated.Value(0)).current;
   
   const { height } = Dimensions.get('window');
   const isSmallScreen = height < 700;
@@ -93,11 +39,15 @@ const LoginScreen = () => {
         useNativeDriver: true,
       }),
       Animated.timing(slideAnim, {
-        toValue: 0,
+        toValue: 1,
         duration: 1500,
         useNativeDriver: true,
       }),
     ]).start();
+
+    setTimeout(() => {
+      mobileInputRef.current?.focus();
+    }, 500);
   }, []);
 
   // Navigate to OTP screen with mobile number
@@ -132,306 +82,135 @@ const LoginScreen = () => {
     navigation.navigate('FarmerRegistration');
   };
 
-  const DemoCredentialsInfo = () => (
-    <View style={styles.demoInfoContainer}>
-      <View style={styles.demoInfoHeader}>
-        <Icon name="info-outline" size={18} color={AppTheme.infoColor} />
-        <Text style={styles.demoInfoTitle}>
-          How it works
-        </Text>
-      </View>
-      <Text style={styles.demoInfoText}>
-        {`1. Enter any 10-digit mobile number\n2. You'll be redirected to OTP screen\n3. Enter any 6-digit OTP to login\n4. Get redirected to home screen`}
-      </Text>
-    </View>
-  );
-
   const slideAnimation = slideAnim.interpolate({
     inputRange: [0, 1],
     outputRange: [30, 0],
   });
 
   return (
-    <View style={styles.container}>
-      <ScrollView 
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
+    <View className="flex-1 bg-green-700">
+      <KeyboardAvoidingView
+        className="flex-1"
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <View style={[styles.topSection, { flex: 3 }]}>
-          <Animated.View 
-            style={[
-              styles.topContent,
-              {
-                opacity: fadeAnim,
-                transform: [{ translateY: slideAnimation }]
-              }
-            ]}
+        <ScrollView 
+          contentContainerStyle={{ flexGrow: 1 }} 
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Top Section with Logo and Title - MATCHING OTP SCREEN SIZE */}
+          <Animated.View
+            style={{
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnimation }]
+            }}
+            className="items-center py-6 px-4"
           >
-            <View style={styles.logoContainer}>
-              <Icon name="agriculture" size={isSmallScreen ? 50 : 60} color="#FFFFFF" />
+            <View className="items-center justify-center">
+              <Icon name="agriculture" size={isSmallScreen ? 80 : 120} color="#FFFFFF" />
             </View>
-            
-            <View style={{ height: isSmallScreen ? 16 : 24 }} />
-            
-            <Text style={styles.appTitle}>
+            <View style={{ height: isSmallScreen ? 14 : 16 }} />
+            <Text className="text-white font-bold text-center" style={{ fontSize: isSmallScreen ? 24 : 28 }}>
               SmartFarmer
             </Text>
-            
-            <View style={{ height: 8 }} />
-            
-            <Text style={styles.appSubtitle}>
+            <View className="h-2" />
+            <Text className="text-white/90 text-center" style={{ fontSize: isSmallScreen ? 14 : 16 }}>
               Smart Farming Management
             </Text>
           </Animated.View>
-        </View>
 
-        <View style={[styles.bottomSection, { flex: -5 }]}>
-          <Animated.View 
-            style={[
-              styles.formContainer,
-              {
+          {/* Bottom Form Section */}
+          <View className="flex-1 bg-white rounded-t-[32px] overflow-hidden">
+            <Animated.View
+              style={{
                 transform: [{ translateY: slideAnimation }]
-              }
-            ]}
-          >
-            <ScrollView 
-              style={styles.formScroll}
-              contentContainerStyle={styles.formContent}
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
+              }}
+              className="flex-1"
             >
-              <Text style={styles.welcomeTitle}>
-                Welcome Back
-              </Text>
-              
-              <View style={{ height: 8 }} />
-              
-              <Text style={styles.welcomeSubtitle}>
-                Enter your mobile number to continue
-              </Text>
-              
-              <View style={{ height: isSmallScreen ? 20 : 32 }} />
+              <ScrollView
+                className="flex-1"
+                contentContainerStyle={{ padding: 24, paddingBottom: 40 }}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+              >
+                <Text className="font-semibold text-gray-900" style={{ fontSize: isSmallScreen ? 20 : 22 }}>
+                  Welcome Back
+                </Text>
+                <View className="h-2" />
+                <Text className="text-gray-600 text-sm leading-5">
+                  Enter your mobile number to continue
+                </Text>
+                <View style={{ height: isSmallScreen ? 20 : 32 }} />
 
-              <View style={styles.form}>
-                {/* Mobile Number Field */}
-                <TextInputField
-                  label="Mobile Number"
-                  value={mobileNumber}
-                  onChangeText={setMobileNumber}
-                  placeholder="Enter any 10-digit mobile number"
-                  icon="phone"
-                  keyboardType="number-pad"
-                  maxLength={10}
-                  inputRef={mobileInputRef}
-                  returnKeyType="done"
-                  blurOnSubmit={false}
-                />
-                
-                <View style={{ height: isSmallScreen ? 12 : 16 }} />
-                
+                {/* Mobile Number Input Field */}
+                <View className="mb-4">
+                  <Text className="text-sm font-medium text-gray-900 mb-2">Mobile Number</Text>
+                  <View className="flex-row items-center border border-gray-300 rounded-xl bg-white">
+                    <View className="p-3">
+                      <Feather name="phone" size={20} color="#2E7D32" />
+                    </View>
+                    <TextInput
+                      ref={mobileInputRef}
+                      className="flex-1 p-3 text-base text-gray-900"
+                      value={mobileNumber}
+                      onChangeText={setMobileNumber}
+                      placeholder="Enter any 10-digit mobile number"
+                      placeholderTextColor="#999"
+                      keyboardType="number-pad"
+                      maxLength={10}
+                      returnKeyType="done"
+                      onSubmitEditing={navigateToOTP}
+                    />
+                  </View>
+                </View>
+
+                <View style={{ height: isSmallScreen ? 16 : 24 }} />
                 <TouchableOpacity
-                  style={styles.primaryButton}
+                  className={`w-full h-[50px] bg-green-700 rounded-xl justify-center items-center ${
+                    (isLoading || !mobileNumber || mobileNumber.length !== 10) ? 'opacity-50' : ''
+                  }`}
                   onPress={navigateToOTP}
-                  disabled={isLoading || mobileNumber.length !== 10}
+                  disabled={isLoading || !mobileNumber || mobileNumber.length !== 10}
                 >
                   {isLoading ? (
                     <ActivityIndicator size="small" color="#FFFFFF" />
                   ) : (
-                    <Text style={styles.primaryButtonText}>
+                    <Text className="text-white font-semibold text-base">
                       Send OTP
                     </Text>
                   )}
                 </TouchableOpacity>
 
-                {/* Sign Up Button */}
                 <View style={{ height: isSmallScreen ? 12 : 16 }} />
-                
                 <TouchableOpacity
-                  style={styles.outlineButton}
+                  className="w-full h-12 bg-transparent border-2 border-green-700 rounded-xl justify-center items-center"
                   onPress={handleSignUp}
                   disabled={isLoading}
+                  style={{ opacity: isLoading ? 0.6 : 1 }}
                 >
-                  <Text style={styles.outlineButtonText}>
+                  <Text className="text-green-700 font-semibold text-base">
                     New User? Sign Up
                   </Text>
                 </TouchableOpacity>
-              </View>
 
-              <View style={{ height: isSmallScreen ? 16 : 24 }} />
-
-              <DemoCredentialsInfo />
-
-            </ScrollView>
-          </Animated.View>
-        </View>
-      </ScrollView>
+                {/* Demo Info */}
+                <View className="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-200">
+                  <View className="flex-row items-center mb-2">
+                    <Feather name="info" size={18} color="#2196F3" />
+                    <Text className="text-blue-600 font-semibold ml-2">
+                      How it works
+                    </Text>
+                  </View>
+                  <Text className="text-gray-600 text-xs leading-5">
+                    {`1. Enter any 10-digit mobile number\n2. You'll be redirected to OTP screen\n3. Enter any 6-digit OTP to login\n4. Get redirected to home screen`}
+                  </Text>
+                </View>
+              </ScrollView>
+            </Animated.View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: AppTheme.primaryColor,
-  },
-  scrollContent: {
-    flexGrow: 1,
-  },
-  topSection: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 16,
-  },
-  topContent: {
-    alignItems: 'center',
-  },
-  logoContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 100,
-    padding: 20,
-  },
-  appTitle: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    fontSize: 28,
-    textAlign: 'center',
-  },
-  appSubtitle: {
-    color: 'rgba(255, 255, 255, 0.9)',
-    textAlign: 'center',
-    fontSize: 16,
-  },
-  bottomSection: {
-    backgroundColor: AppTheme.backgroundColor,
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    overflow: 'hidden',
-    flex: 1,
-  },
-  formContainer: {
-    flex: 1,
-  },
-  formScroll: {
-    flex: 1,
-  },
-  formContent: {
-    padding: 24,
-    paddingBottom: 40,
-  },
-  welcomeTitle: {
-    fontWeight: '600',
-    color: AppTheme.textPrimaryColor,
-    fontSize: 22,
-  },
-  welcomeSubtitle: {
-    color: AppTheme.textSecondaryColor,
-    fontSize: 14,
-  },
-  form: {
-    width: '100%',
-  },
-  inputContainer: {
-    marginBottom: 16,
-  },
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: AppTheme.textPrimaryColor,
-    marginBottom: 8,
-  },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#DDD',
-    borderRadius: 12,
-    backgroundColor: '#FFFFFF',
-  },
-  inputIcon: {
-    padding: 12,
-  },
-  textInput: {
-    flex: 1,
-    padding: 12,
-    fontSize: 16,
-    color: AppTheme.textPrimaryColor,
-  },
-  disabledInput: {
-    backgroundColor: '#F5F5F5',
-    color: '#666666',
-  },
-  primaryButton: {
-    width: '100%',
-    height: 50,
-    backgroundColor: AppTheme.primaryColor,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  primaryButtonText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-    fontSize: 16,
-  },
-  outlineButton: {
-    width: '100%',
-    height: 50,
-    backgroundColor: 'transparent',
-    borderWidth: 2,
-    borderColor: AppTheme.primaryColor,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  outlineButtonText: {
-    color: AppTheme.primaryColor,
-    fontWeight: '600',
-    fontSize: 16,
-  },
-  demoInfoContainer: {
-    padding: 16,
-    backgroundColor: 'rgba(33, 150, 243, 0.1)',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(33, 150, 243, 0.3)',
-  },
-  demoInfoHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  demoInfoTitle: {
-    color: AppTheme.infoColor,
-    fontWeight: '600',
-    marginLeft: 8,
-  },
-  demoInfoText: {
-    color: AppTheme.textSecondaryColor,
-    lineHeight: 18,
-    fontSize: 12,
-  },
-});
-
 export default LoginScreen;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

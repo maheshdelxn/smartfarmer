@@ -2,7 +2,6 @@ import React from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   TouchableOpacity,
   Linking,
@@ -11,88 +10,116 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useNavigation } from '@react-navigation/native';
 import * as WebBrowser from 'expo-web-browser';
+import { MaterialCommunityIcons, Feather, Ionicons } from '@expo/vector-icons';
 
-const HelpSupportScreen = ({ navigation }) => {
+const HelpSupportScreen = () => {
+  const navigation = useNavigation();
+
   // Header Card Component
   const HeaderCard = () => (
-    <View style={styles.headerCard}>
-      <Text style={styles.headerIcon}>❓</Text>
-      <Text style={styles.headerTitle}>How can we help you?</Text>
-      <Text style={styles.headerDescription}>
+    <View className="bg-white rounded-3xl p-6 items-center shadow-sm mb-4">
+      <View className="w-20 h-20 bg-green-100 rounded-3xl items-center justify-center mb-4">
+        <Ionicons name="help-circle" size={48} color="#16a34a" />
+      </View>
+      <Text className="text-2xl font-bold text-gray-800 text-center mb-2">
+        How can we help you?
+      </Text>
+      <Text className="text-sm text-gray-500 text-center leading-6">
         Get instant help with our comprehensive support resources, FAQs, and direct contact options.
       </Text>
     </View>
   );
 
   // Section Component
-  const Section = ({ title, icon, children }) => (
-    <View style={styles.section}>
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionIcon}>{icon}</Text>
-        <Text style={styles.sectionTitle}>{title}</Text>
+  const Section = ({ title, icon, iconType = "MaterialCommunityIcons", children }) => {
+    const IconComponent = 
+      iconType === 'MaterialCommunityIcons' ? MaterialCommunityIcons :
+      iconType === 'Feather' ? Feather : Ionicons;
+
+    return (
+      <View className="mb-4">
+        <View className="flex-row items-center mb-3">
+          <View className="w-10 h-10 bg-green-100 rounded-xl items-center justify-center mr-2">
+            <IconComponent name={icon} size={20} color="#16a34a" />
+          </View>
+          <Text className="text-xl font-semibold text-green-800">{title}</Text>
+        </View>
+        <View className="bg-white rounded-3xl shadow-sm overflow-hidden">
+          {children}
+        </View>
       </View>
-      <View style={styles.sectionContent}>
-        {children}
-      </View>
-    </View>
-  );
+    );
+  };
 
   // Contact Item Component
-  const ContactItem = ({ icon, title, subtitle, onPress }) => (
-    <TouchableOpacity style={styles.contactItem} onPress={onPress}>
-      <View style={styles.contactIcon}>
-        <Text style={styles.contactIconText}>{icon}</Text>
-      </View>
-      <View style={styles.contactContent}>
-        <Text style={styles.contactTitle}>{title}</Text>
-        <Text style={styles.contactSubtitle}>{subtitle}</Text>
-      </View>
-      <Text style={styles.contactArrow}>›</Text>
-    </TouchableOpacity>
-  );
+  const ContactItem = ({ icon, iconType = "Ionicons", title, subtitle, onPress }) => {
+    const IconComponent = 
+      iconType === 'MaterialCommunityIcons' ? MaterialCommunityIcons :
+      iconType === 'Feather' ? Feather : Ionicons;
+
+    return (
+      <TouchableOpacity className="flex-row items-center p-5" onPress={onPress}>
+        <View className="w-12 h-12 bg-green-100 rounded-2xl justify-center items-center">
+          <IconComponent name={icon} size={24} color="#16a34a" />
+        </View>
+        <View className="flex-1 ml-4">
+          <Text className="text-base font-semibold text-gray-800 mb-1">{title}</Text>
+          <Text className="text-sm text-gray-500">{subtitle}</Text>
+        </View>
+        <Feather name="chevron-right" size={24} color="#9ca3af" />
+      </TouchableOpacity>
+    );
+  };
 
   // FAQ Item Component
   const FaqItem = ({ question, answer }) => (
-    <View style={styles.faqItem}>
-      <Text style={styles.faqQuestion}>{question}</Text>
-      <Text style={styles.faqAnswer}>{answer}</Text>
+    <View className="p-5">
+      <Text className="text-base font-semibold text-green-700 mb-2">{question}</Text>
+      <Text className="text-sm text-gray-600 leading-6">{answer}</Text>
     </View>
   );
 
   // Video Tutorial Item Component
   const VideoTutorialItem = ({ title, duration, onPress }) => (
-    <TouchableOpacity style={styles.videoItem} onPress={onPress}>
-      <View style={styles.videoThumbnail}>
-        <Text style={styles.videoPlayIcon}>▶️</Text>
+    <TouchableOpacity className="flex-row items-center p-5" onPress={onPress}>
+      <View className="w-16 h-16 bg-purple-600 rounded-2xl justify-center items-center">
+        <Ionicons name="play" size={28} color="white" />
       </View>
-      <View style={styles.videoContent}>
-        <Text style={styles.videoTitle}>{title}</Text>
-        <View style={styles.videoDuration}>
-          <Text style={styles.durationIcon}>⏱️</Text>
-          <Text style={styles.durationText}>{duration}</Text>
+      <View className="flex-1 ml-4">
+        <Text className="text-base font-semibold text-gray-800 mb-1">{title}</Text>
+        <View className="flex-row items-center">
+          <Ionicons name="time-outline" size={14} color="#6b7280" />
+          <Text className="text-sm text-gray-500 ml-1">{duration}</Text>
         </View>
       </View>
-      <Text style={styles.videoPlayButton}>▶</Text>
+      <Feather name="chevron-right" size={24} color="#9ca3af" />
     </TouchableOpacity>
   );
 
   // Guide Item Component
-  const GuideItem = ({ icon, title, description, onPress }) => (
-    <TouchableOpacity style={styles.guideItem} onPress={onPress}>
-      <View style={styles.guideIcon}>
-        <Text style={styles.guideIconText}>{icon}</Text>
-      </View>
-      <View style={styles.guideContent}>
-        <Text style={styles.guideTitle}>{title}</Text>
-        <Text style={styles.guideDescription}>{description}</Text>
-      </View>
-      <Text style={styles.guideArrow}>›</Text>
-    </TouchableOpacity>
-  );
+  const GuideItem = ({ icon, iconType = "MaterialCommunityIcons", title, description, onPress }) => {
+    const IconComponent = 
+      iconType === 'MaterialCommunityIcons' ? MaterialCommunityIcons :
+      iconType === 'Feather' ? Feather : Ionicons;
+
+    return (
+      <TouchableOpacity className="flex-row items-center p-5" onPress={onPress}>
+        <View className="w-12 h-12 bg-blue-100 rounded-2xl justify-center items-center">
+          <IconComponent name={icon} size={24} color="#3b82f6" />
+        </View>
+        <View className="flex-1 ml-4">
+          <Text className="text-base font-semibold text-gray-800 mb-1">{title}</Text>
+          <Text className="text-sm text-gray-500">{description}</Text>
+        </View>
+        <Feather name="chevron-right" size={24} color="#9ca3af" />
+      </TouchableOpacity>
+    );
+  };
 
   // Divider Component
-  const Divider = () => <View style={styles.divider} />;
+  const Divider = () => <View className="h-px bg-gray-100 mx-5" />;
 
   // Action Functions
   const launchEmail = async () => {
@@ -169,32 +196,35 @@ const HelpSupportScreen = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView className="flex-1 bg-green-50">
       <StatusBar backgroundColor="#16a34a" barStyle="light-content" />
       
       {/* Custom Header */}
       <LinearGradient
-        colors={['#16a34a', '#22c55e']}
-        style={styles.header}
+        colors={['#16a34a', '#15803d']}
+        className="pt-3 pb-4"
       >
-        <View style={styles.headerContent}>
-          <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-            <Text style={styles.backButtonText}>←</Text>
+        <View className="flex-row items-center justify-between px-4">
+          <TouchableOpacity 
+            className="w-10 h-10 bg-white/20 rounded-xl justify-center items-center"
+            onPress={handleBack}
+          >
+            <Ionicons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Help & Support</Text>
-          <View style={styles.headerPlaceholder} />
+          <Text className="text-white text-xl font-semibold">Help & Support</Text>
+          <View className="w-10" />
         </View>
       </LinearGradient>
 
       <ScrollView 
-        style={styles.scrollView}
+        className="flex-1"
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.content}>
+        <View className="px-4 py-4">
           <HeaderCard />
           
           {/* Quick Help Section */}
-          <Section title="Quick Help" icon="⚡">
+          <Section title="Quick Help" icon="flash" iconType="Ionicons">
             <FaqItem
               question="How do I reset my password?"
               answer="Go to Profile > Settings > Change Password. You'll receive a reset link on your registered email."
@@ -217,7 +247,7 @@ const HelpSupportScreen = ({ navigation }) => {
           </Section>
 
           {/* Video Tutorials Section */}
-          <Section title="Video Tutorials" icon="🎬">
+          <Section title="Video Tutorials" icon="video" iconType="Feather">
             <VideoTutorialItem
               title="Getting Started with Farmer App"
               duration="5:23"
@@ -238,23 +268,26 @@ const HelpSupportScreen = ({ navigation }) => {
           </Section>
 
           {/* User Guide Section */}
-          <Section title="User Guide" icon="📚">
+          <Section title="User Guide" icon="book-open" iconType="Feather">
             <GuideItem
-              icon="🌱"
+              icon="sprout"
+              iconType="MaterialCommunityIcons"
               title="Crop Management Guide"
               description="Complete guide to adding and tracking crops"
               onPress={openPdfGuide}
             />
             <Divider />
             <GuideItem
-              icon="📊"
+              icon="chart-line"
+              iconType="MaterialCommunityIcons"
               title="Market Trends Handbook"
               description="Understanding and using market price data"
               onPress={openPdfGuide}
             />
             <Divider />
             <GuideItem
-              icon="⚙️"
+              icon="settings"
+              iconType="Ionicons"
               title="App Settings Manual"
               description="Customizing your app experience"
               onPress={openPdfGuide}
@@ -262,23 +295,26 @@ const HelpSupportScreen = ({ navigation }) => {
           </Section>
 
           {/* Contact Support Section */}
-          <Section title="Contact Support" icon="📞">
+          <Section title="Contact Support" icon="phone" iconType="Feather">
             <ContactItem
-              icon="📧"
+              icon="mail"
+              iconType="Ionicons"
               title="Email Us"
               subtitle="support@farmerapp.com"
               onPress={launchEmail}
             />
             <Divider />
             <ContactItem
-              icon="📱"
+              icon="call"
+              iconType="Ionicons"
               title="Call Us"
               subtitle="+1 (800) 123-4567"
               onPress={launchPhoneCall}
             />
             <Divider />
             <ContactItem
-              icon="💬"
+              icon="chatbubbles"
+              iconType="Ionicons"
               title="Live Chat"
               subtitle="Available 24/7"
               onPress={startLiveChat}
@@ -286,16 +322,18 @@ const HelpSupportScreen = ({ navigation }) => {
           </Section>
 
           {/* Community Section */}
-          <Section title="Community" icon="👥">
+          <Section title="Community" icon="people" iconType="Ionicons">
             <ContactItem
-              icon="💬"
+              icon="forum"
+              iconType="MaterialCommunityIcons"
               title="Community Forum"
               subtitle="Join discussions with other farmers"
               onPress={openForum}
             />
             <Divider />
             <ContactItem
-              icon="👥"
+              icon="logo-facebook"
+              iconType="Ionicons"
               title="Facebook Group"
               subtitle="Connect with our farming community"
               onPress={openFacebookGroup}
@@ -303,276 +341,19 @@ const HelpSupportScreen = ({ navigation }) => {
           </Section>
 
           {/* Report Problem Button */}
-          <TouchableOpacity style={styles.reportButton} onPress={reportProblem}>
-            <Text style={styles.reportButtonIcon}>🐛</Text>
-            <Text style={styles.reportButtonText}>Report a Problem</Text>
+          <TouchableOpacity 
+            className="flex-row items-center justify-center bg-red-50 border-2 border-red-200 rounded-3xl p-5 shadow-sm"
+            onPress={reportProblem}
+          >
+            <Ionicons name="bug" size={24} color="#ef4444" />
+            <Text className="text-base font-semibold text-red-600 ml-2">Report a Problem</Text>
           </TouchableOpacity>
+
+          <View className="h-6" />
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8FFFE',
-  },
-  header: {
-    paddingTop: 50,
-    paddingBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
-  },
-  headerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  backButtonText: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  headerTitle: {
-    color: 'white',
-    fontSize: 20,
-    fontWeight: '600',
-  },
-  headerPlaceholder: {
-    width: 40,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  content: {
-    padding: 20,
-  },
-  headerCard: {
-    backgroundColor: 'white',
-    borderRadius: 15,
-    padding: 20,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
-    marginBottom: 24,
-  },
-  headerIcon: {
-    fontSize: 60,
-    marginBottom: 16,
-  },
-  headerTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#166534',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  headerDescription: {
-    fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  section: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  sectionIcon: {
-    fontSize: 20,
-    marginRight: 8,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  sectionContent: {
-    padding: 8,
-  },
-  contactItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    borderRadius: 8,
-  },
-  contactIcon: {
-    width: 40,
-    height: 40,
-    backgroundColor: '#dcfce7',
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  contactIconText: {
-    fontSize: 18,
-  },
-  contactContent: {
-    flex: 1,
-  },
-  contactTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#333',
-    marginBottom: 2,
-  },
-  contactSubtitle: {
-    fontSize: 14,
-    color: '#666',
-  },
-  contactArrow: {
-    fontSize: 18,
-    color: '#999',
-    marginLeft: 8,
-  },
-  faqItem: {
-    padding: 12,
-  },
-  faqQuestion: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#16a34a',
-    marginBottom: 8,
-  },
-  faqAnswer: {
-    fontSize: 14,
-    color: '#666',
-    lineHeight: 20,
-  },
-  videoItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    borderRadius: 8,
-  },
-  videoThumbnail: {
-    width: 80,
-    height: 60,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  videoPlayIcon: {
-    fontSize: 20,
-  },
-  videoContent: {
-    flex: 1,
-  },
-  videoTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#333',
-    marginBottom: 4,
-  },
-  videoDuration: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  durationIcon: {
-    fontSize: 12,
-    marginRight: 4,
-  },
-  durationText: {
-    fontSize: 14,
-    color: '#666',
-  },
-  videoPlayButton: {
-    fontSize: 20,
-    color: '#16a34a',
-    marginLeft: 8,
-  },
-  guideItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    borderRadius: 8,
-  },
-  guideIcon: {
-    width: 40,
-    height: 40,
-    backgroundColor: '#dcfce7',
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  guideIconText: {
-    fontSize: 18,
-  },
-  guideContent: {
-    flex: 1,
-  },
-  guideTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#333',
-    marginBottom: 2,
-  },
-  guideDescription: {
-    fontSize: 14,
-    color: '#666',
-  },
-  guideArrow: {
-    fontSize: 18,
-    color: '#999',
-    marginLeft: 8,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#f0f0f0',
-    marginHorizontal: 12,
-  },
-  reportButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#fef2f2',
-    borderWidth: 1,
-    borderColor: '#fecaca',
-    borderRadius: 12,
-    padding: 16,
-    marginTop: 8,
-  },
-  reportButtonIcon: {
-    fontSize: 18,
-    marginRight: 8,
-  },
-  reportButtonText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#dc2626',
-  },
-});
 
 export default HelpSupportScreen;

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   TouchableOpacity,
   Alert,
@@ -11,34 +10,35 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-
+import { useNavigation } from '@react-navigation/native';
 
 const { width: screenWidth } = Dimensions.get('window');
 
-const ProfileViewScreen = ({ navigation, route }) => {
+const ProfileViewScreen = ({ route }) => {
+  const navigation = useNavigation();
   const [profileData, setProfileData] = useState(null);
   
-  // Hide footer when this screen is active
-  useEffect(() => {
-    // You can also use navigation.setOptions to dynamically show/hide tab bar
-    // or use a context to control footer visibility
-    
-    return () => {
-      // Cleanup when component unmounts
-    };
-  }, []);
-
   useEffect(() => {
     loadProfileData();
   }, []);
 
   const loadProfileData = async () => {
     try {
-      const userData = await AuthService.getUserData();
-      if (userData) {
-        setProfileData(userData);
-      }
+      // Create mock user data directly instead of using AuthService
+      const mockUserData = {
+        id: 'demo-user-123',
+        name: 'Demo Farmer',
+        mobileNumber: '9876543210',
+        aadhaarNumber: '1234 5678 9012',
+        contactNumber: '9876543210',
+        village: 'Demo Village',
+        taluka: 'Demo Taluka',
+        district: 'Demo District',
+        pincode: '123456',
+        createdAt: new Date().toISOString(),
+      };
+      
+      setProfileData(mockUserData);
     } catch (error) {
       console.log('Error loading profile data:', error);
     }
@@ -60,7 +60,14 @@ const ProfileViewScreen = ({ navigation, route }) => {
 
   const navigateToEditProfile = () => {
     if (profileData) {
-      navigation.navigate('EditFarmerDetails', { farmer: profileData });
+      // First check if the screen exists, if not show alert
+      Alert.alert(
+        'Edit Profile', 
+        'Edit profile feature will be available soon!',
+        [{ text: 'OK' }]
+      );
+      // Alternatively, you can navigate to a different screen:
+      // navigation.navigate('EditProfile', { farmer: profileData });
     } else {
       Alert.alert('Error', 'Profile data not available for editing');
     }
@@ -71,29 +78,29 @@ const ProfileViewScreen = ({ navigation, route }) => {
   };
 
   // Get profile data with fallbacks
-  const name = profileData?.name || '';
-  const aadhaar = profileData?.aadhaarNumber || profileData?.aadhaar_number || '';
-  const contact = profileData?.contactNumber || profileData?.contact_number || '';
-  const village = profileData?.village || '';
-  const taluka = profileData?.taluka || '';
-  const district = profileData?.district || '';
-  const pincode = profileData?.pincode || '';
+  const name = profileData?.name || 'Demo Farmer';
+  const aadhaar = profileData?.aadhaarNumber || profileData?.aadhaar_number || '1234 5678 9012';
+  const contact = profileData?.contactNumber || profileData?.contact_number || '9876543210';
+  const village = profileData?.village || 'Demo Village';
+  const taluka = profileData?.taluka || 'Demo Taluka';
+  const district = profileData?.district || 'Demo District';
+  const pincode = profileData?.pincode || '123456';
   const id = profileData?.id || profileData?._id || '';
-  const createdAt = formatDate(profileData?.createdAt || profileData?.created_at || '');
+  const createdAt = formatDate(profileData?.createdAt || profileData?.created_at || new Date().toISOString());
 
   const buildProfileHeader = () => (
-    <View style={styles.profileHeader}>
+    <View className="mt-2 rounded-2xl overflow-hidden shadow-lg shadow-green-500/30">
       <LinearGradient
         colors={['#66BB6A', '#4CAF50']}
-        style={styles.profileHeaderGradient}
+        className="p-6"
       >
-        <View style={styles.headerContent}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
-              {name ? name.substring(0, 2).toUpperCase() : ''}
+        <View className="flex-row items-center">
+          <View className="w-17 h-17 rounded-full bg-white/25 justify-center items-center mr-5">
+            <Text className="text-2xl font-bold text-white">
+              {name ? name.substring(0, 2).toUpperCase() : 'DF'}
             </Text>
           </View>
-          <Text style={styles.profileName} numberOfLines={2}>
+          <Text className="flex-1 text-2xl font-bold text-white -tracking-tight" numberOfLines={2}>
             {name}
           </Text>
         </View>
@@ -102,7 +109,7 @@ const ProfileViewScreen = ({ navigation, route }) => {
   );
 
   const buildQuickStats = () => (
-    <View style={styles.statsContainer}>
+    <View className="flex-row justify-between">
       <StatCard
         title="Total Crops"
         value="12"
@@ -110,7 +117,7 @@ const ProfileViewScreen = ({ navigation, route }) => {
         icon="🌱"
         color="#2196F3"
       />
-      <View style={styles.statSpacer} />
+      <View className="w-3" />
       <StatCard
         title="Total Area"
         value="45"
@@ -118,7 +125,7 @@ const ProfileViewScreen = ({ navigation, route }) => {
         icon="🌾"
         color="#FF9800"
       />
-      <View style={styles.statSpacer} />
+      <View className="w-3" />
       <StatCard
         title="Verified Crops"
         value="8"
@@ -130,354 +137,137 @@ const ProfileViewScreen = ({ navigation, route }) => {
   );
 
   const StatCard = ({ title, value, unit, icon, color }) => (
-    <View style={styles.statCard}>
-      <View style={[styles.statIcon, { backgroundColor: `${color}10` }]}>
-        <Text style={[styles.statIconText, { color }]}>{icon}</Text>
+    <View className="flex-1 bg-white p-5 rounded-2xl shadow-lg">
+      <View 
+        className="w-9 h-9 rounded-xl justify-center items-center mb-3"
+        style={{ backgroundColor: `${color}10` }}
+      >
+        <Text style={{ color }} className="text-base">{icon}</Text>
       </View>
-      <Text style={styles.statTitle}>{title}</Text>
-      <View style={styles.statValueContainer}>
-        <Text style={styles.statValue}>{value}</Text>
-        {unit ? <Text style={styles.statUnit}> {unit}</Text> : null}
+      <Text className="text-xs text-gray-500 font-medium mb-1">{title}</Text>
+      <View className="flex-row items-baseline">
+        <Text className="text-lg font-bold text-gray-800">{value}</Text>
+        {unit ? <Text className="text-xs font-medium text-gray-500 ml-1">{unit}</Text> : null}
       </View>
     </View>
   );
 
-  const buildDetailsSection = ({ title, sectionIcon, details }) => (
-    <View style={styles.detailsSection}>
-      <View style={styles.sectionHeader}>
-        <View style={styles.sectionIcon}>
-          <Text style={styles.sectionIconText}>{sectionIcon}</Text>
-        </View>
-        <Text style={styles.sectionTitle}>{title}</Text>
+  // Fixed buildDetailRow with proper keys
+  const buildDetailRow = (title, value, icon, color, isLast = false, key) => (
+    <View 
+      key={key}
+      className={`flex-row items-center px-6 py-3 ${!isLast && 'border-b border-gray-100'}`}
+    >
+      <View 
+        className="w-8 h-8 rounded-lg justify-center items-center mr-4"
+        style={{ backgroundColor: `${color}10` }}
+      >
+        <Text style={{ color }} className="text-sm">{icon}</Text>
       </View>
-      {details}
-    </View>
-  );
-
-  const buildDetailRow = (title, value, icon, color, isLast = false) => (
-    <View style={[styles.detailRow, isLast && styles.detailRowLast]}>
-      <View style={[styles.detailIcon, { backgroundColor: `${color}10` }]}>
-        <Text style={[styles.detailIconText, { color }]}>{icon}</Text>
-      </View>
-      <View style={styles.detailContent}>
-        <Text style={styles.detailTitle}>{title}</Text>
-        <Text style={styles.detailValue} numberOfLines={1}>
+      <View className="flex-1 flex-row justify-between items-center">
+        <Text className="font-semibold text-sm text-gray-700 flex-2">{title}</Text>
+        <Text className="font-medium text-sm text-gray-800 flex-3 text-right" numberOfLines={1}>
           {value}
         </Text>
       </View>
     </View>
   );
 
+  const buildDetailsSection = ({ title, sectionIcon, details, sectionKey }) => (
+    <View key={sectionKey} className="bg-white rounded-2xl shadow-lg">
+      <View className="flex-row items-center p-6 pb-4">
+        <View className="w-9 h-9 bg-blue-50 rounded-xl justify-center items-center mr-3">
+          <Text className="text-base text-blue-700">{sectionIcon}</Text>
+        </View>
+        <Text className="text-lg font-bold text-gray-800 flex-1">{title}</Text>
+      </View>
+      {details}
+    </View>
+  );
+
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView className="flex-1 bg-green-50">
       <StatusBar backgroundColor="#2E7D32" barStyle="light-content" />
       
       {/* Custom Header - Profile Details */}
       <LinearGradient
         colors={['#2E7D32', '#4CAF50']}
-        style={styles.header}
+        className="pt-12 pb-4 shadow-lg"
       >
-        <View style={styles.headerContentWrapper}>
+        <View className="flex-row items-center justify-between px-4">
           <TouchableOpacity 
-            style={styles.backButton}
+            className="w-10 h-10 bg-white/20 rounded-xl justify-center items-center"
             onPress={handleBack}
           >
-            <Text style={styles.backButtonText}>←</Text>
+            <Text className="text-white text-lg font-bold">←</Text>
           </TouchableOpacity>
           
-          <Text style={styles.headerTitle}>Profile Details</Text>
+          <Text className="text-white text-xl font-semibold">Profile Details</Text>
           
           <TouchableOpacity 
-            style={styles.editButton}
+            className="w-10 h-10 bg-white/20 rounded-xl justify-center items-center"
             onPress={navigateToEditProfile}
           >
-            <Text style={styles.editButtonText}>✏️</Text>
+            <Text className="text-white text-base">✏️</Text>
           </TouchableOpacity>
         </View>
       </LinearGradient>
 
       <ScrollView 
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        className="flex-1"
+        contentContainerStyle={{ flexGrow: 1 }}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.content}>
+        <View className="p-5 pb-10">
           {buildProfileHeader()}
-          <View style={styles.spacer} />
+          <View className="h-6" />
           {buildQuickStats()}
-          <View style={styles.spacer} />
+          <View className="h-6" />
 
           {/* Personal Information */}
           {buildDetailsSection({
             title: "Personal Information",
             sectionIcon: "👤",
+            sectionKey: "personal-info",
             details: [
-              buildDetailRow("Name", name, "👨‍🌾", "#4CAF50"),
-              buildDetailRow("Contact Number", contact, "📞", "#2196F3"),
-              buildDetailRow("Aadhaar Number", aadhaar, "🆔", "#FF9800", true),
+              buildDetailRow("Name", name, "👨‍🌾", "#4CAF50", false, "name-row"),
+              buildDetailRow("Contact Number", contact, "📞", "#2196F3", false, "contact-row"),
+              buildDetailRow("Aadhaar Number", aadhaar, "🆔", "#FF9800", true, "aadhaar-row"),
             ]
           })}
 
-          <View style={styles.spacer} />
+          <View className="h-6" />
 
           {/* Address Information */}
           {buildDetailsSection({
             title: "Address Information",
             sectionIcon: "📍",
+            sectionKey: "address-info",
             details: [
-              buildDetailRow("Village", village, "🏘️", "#4CAF50"),
-              buildDetailRow("Taluka", taluka, "🗺️", "#2196F3"),
-              buildDetailRow("District", district, "🏛️", "#FF9800"),
-              buildDetailRow("Pincode", pincode, "📮", "#F44336", true),
+              buildDetailRow("Village", village, "🏘️", "#4CAF50", false, "village-row"),
+              buildDetailRow("Taluka", taluka, "🗺️", "#2196F3", false, "taluka-row"),
+              buildDetailRow("District", district, "🏛️", "#FF9800", false, "district-row"),
+              buildDetailRow("Pincode", pincode, "📮", "#F44336", true, "pincode-row"),
             ]
           })}
 
-          <View style={styles.spacer} />
+          <View className="h-6" />
 
           {/* Account Information */}
           {buildDetailsSection({
             title: "Account Information",
             sectionIcon: "📋",
+            sectionKey: "account-info",
             details: [
-              buildDetailRow("Registration Date", createdAt, "📅", "#2196F3", true),
+              buildDetailRow("Registration Date", createdAt, "📅", "#2196F3", true, "registration-row"),
             ]
           })}
 
-          <View style={styles.bottomSpacer} />
+          <View className="h-10" />
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8FFFE',
-  },
-  header: {
-    paddingTop: 50,
-    paddingBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
-  },
-  headerContentWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  backButtonText: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  headerTitle: {
-    color: 'white',
-    fontSize: 20,
-    fontWeight: '600',
-  },
-  editButton: {
-    width: 40,
-    height: 40,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  editButtonText: {
-    color: 'white',
-    fontSize: 16,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-  },
-  content: {
-    padding: 20,
-    paddingBottom: 40, // Extra padding at bottom since no footer
-  },
-  profileHeader: {
-    marginTop: 10,
-    borderRadius: 20,
-    overflow: 'hidden',
-    shadowColor: '#4CAF50',
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.3,
-    shadowRadius: 15,
-    elevation: 5,
-  },
-  profileHeaderGradient: {
-    padding: 24,
-  },
-  headerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  avatar: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: 'rgba(255,255,255,0.25)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 20,
-  },
-  avatarText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: 'white',
-  },
-  profileName: {
-    flex: 1,
-    fontSize: 24,
-    fontWeight: '700',
-    color: 'white',
-    letterSpacing: -0.5,
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  statSpacer: {
-    width: 12,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 3,
-  },
-  statIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  statIconText: {
-    fontSize: 16,
-  },
-  statTitle: {
-    fontSize: 12,
-    color: '#666',
-    fontWeight: '500',
-    marginBottom: 4,
-  },
-  statValueContainer: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-  },
-  statValue: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#333',
-  },
-  statUnit: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#666',
-  },
-  spacer: {
-    height: 24,
-  },
-  bottomSpacer: {
-    height: 40,
-  },
-  detailsSection: {
-    backgroundColor: 'white',
-    borderRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.05,
-    shadowRadius: 15,
-    elevation: 3,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 24,
-    paddingBottom: 16,
-  },
-  sectionIcon: {
-    width: 36,
-    height: 36,
-    backgroundColor: '#E3F2FD',
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  sectionIconText: {
-    fontSize: 16,
-    color: '#1976D2',
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#333',
-    flex: 1,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  detailRowLast: {
-    borderBottomWidth: 0,
-  },
-  detailIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  detailIconText: {
-    fontSize: 14,
-  },
-  detailContent: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  detailTitle: {
-    fontWeight: '600',
-    fontSize: 14,
-    color: '#37474F',
-    flex: 2,
-  },
-  detailValue: {
-    fontWeight: '500',
-    fontSize: 14,
-    color: '#333',
-    flex: 3,
-    textAlign: 'right',
-  },
-});
 
 export default ProfileViewScreen;

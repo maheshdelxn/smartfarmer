@@ -15,6 +15,7 @@ import {
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 
+ 
 const OTPVerificationScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
@@ -58,43 +59,35 @@ const OTPVerificationScreen = () => {
   };
 
   const verifyOTP = async () => {
-    if (!otp || otp.length !== 6) {
-      Alert.alert('Error', 'Please enter a 6-digit OTP');
-      return;
-    }
+  if (!otp || otp.length !== 6) {
+    Alert.alert('Error', 'Please enter a 6-digit OTP');
+    return;
+  }
 
-    setIsLoading(true);
+  setIsLoading(true);
 
-    try {
-      console.log('Verifying OTP:', { mobileNumber, otp });
-
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // Create mock user data
-      const mockUserData = {
-        id: Math.random().toString(36).substr(2, 9),
-        name: `Farmer ${mobileNumber}`,
-        mobileNumber: mobileNumber,
-        token: 'demo-token-' + Math.random().toString(36).substr(2, 16),
-        createdAt: new Date().toISOString(),
-      };
-
-      console.log('OTP verification successful. Mock user data:', mockUserData);
-
-      // Navigate to home screen
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'MainApp' }],
-      });
-    } catch (error) {
-      console.error('OTP verification error:', error);
-      Alert.alert('Error', 'OTP verification failed. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+  try {
+    console.log('Verifying OTP:', { mobileNumber, otp });
+    
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    console.log('OTP verification successful for mobile:', mobileNumber);
+    
+    // Navigate directly without storing any data
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'MainApp' }],
+    });
+    
+  } catch (error) {
+    console.error('OTP verification error:', error);
+    Alert.alert('Error', 'OTP verification failed. Please try again.');
+  } finally {
+    setIsLoading(false);
+  }
+};
+ 
   const resendOTP = async () => {
     setIsLoading(true);
     try {
