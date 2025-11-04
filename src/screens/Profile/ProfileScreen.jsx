@@ -152,6 +152,7 @@ const ProfileScreen = () => {
       <SettingTile
         icon="🔔"
         title="Notifications"
+        // onPress={() => navigation.navigate('NotificationScreen')}
         trailing={
           <TouchableOpacity onPress={() => setNotificationsEnabled(!notificationsEnabled)}>
             <View className={`w-12 h-7 rounded-2xl p-1 ${
