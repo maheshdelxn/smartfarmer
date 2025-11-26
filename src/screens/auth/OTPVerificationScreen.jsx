@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
+import AuthService from '../../services/AuthService';
 
  
 const OTPVerificationScreen = () => {
@@ -58,7 +59,8 @@ const OTPVerificationScreen = () => {
     }
   };
 
-  const verifyOTP = async () => {
+  // In your OTPVerificationScreen.js - Update the verifyOTP function
+const verifyOTP = async () => {
   if (!otp || otp.length !== 6) {
     Alert.alert('Error', 'Please enter a 6-digit OTP');
     return;
@@ -74,7 +76,20 @@ const OTPVerificationScreen = () => {
     
     console.log('OTP verification successful for mobile:', mobileNumber);
     
-    // Navigate directly without storing any data
+    // Get user data and token from route params
+    const userData = route.params?.userData;
+    const token = route.params?.token;
+    
+    // If we have user data from login response, store it
+    if (token && userData) {
+      // Make sure AuthService has the storeAuthData method
+      if (AuthService.storeAuthData) {
+        await AuthService.storeAuthData(token, userData);
+        console.log('✅ User data stored successfully');
+      }
+    }
+    
+    // Navigate to main app
     navigation.reset({
       index: 0,
       routes: [{ name: 'MainApp' }],

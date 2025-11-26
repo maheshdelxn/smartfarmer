@@ -2,7 +2,6 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons";
 import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
-
 // Import all your screens
 import HomeScreen from "../src/screens/Home/HomeScreen";
 import CropDetailsScreen from "../src/screens/Home/add_crop"
@@ -18,7 +17,6 @@ import HelpSupportScreen from "../src/screens/Profile/HelpSupportScreen";
 import AboutScreen from "../src/screens/Profile/AboutScreen";
 import NotificationScreen from '../src/screens/Profile/NotificationScreen';
 
-
 // Create stack navigators for each tab
 const HomeStack = createStackNavigator();
 const CropStack = createStackNavigator();
@@ -27,35 +25,65 @@ const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
 // Stack for Home tab
-function HomeStackScreen() {
+function HomeStackScreen({ route }) {
+  // Get the user data passed from LoginScreen through MainTabNavigator
+  const userData = route.params?.user || {};
+  const token = route.params?.token || '';
+
+  console.log('🏠 HomeStackScreen received params:', { 
+    hasUser: !!userData.name, 
+    userName: userData.name,
+    tokenLength: token?.length || 0
+  });
+
   return (
     <HomeStack.Navigator screenOptions={{ headerShown: false }}>
-      <HomeStack.Screen name="HomeMain" component={HomeScreen} />
+      <HomeStack.Screen 
+        name="HomeMain" 
+        component={HomeScreen}
+        initialParams={{ user: userData, token: token }}
+      />
       <HomeStack.Screen name="Crop Details" component={CropDetailsScreen}/>
     </HomeStack.Navigator>
   );
 }
 
 // Stack for Crop tab
-function CropStackScreen() {
+function CropStackScreen({ route }) {
+  // Get user data for Crop screens if needed
+  const userData = route.params?.user || {};
+  const token = route.params?.token || '';
+
   return (
     <CropStack.Navigator screenOptions={{ headerShown: false }}>
-      <CropStack.Screen name="CropMain" component={MyCropsScreen} />
+      <CropStack.Screen 
+        name="CropMain" 
+        component={MyCropsScreen}
+        initialParams={{ user: userData, token: token }}
+      />
       <CropStack.Screen name="Crop Details" component={CropDetailsScreen}/>
       <CropStack.Screen name="Crop Information" component={CropDetailViewScreen}/>
     </CropStack.Navigator>
   );
 }
 
-// Stack for Profile tab - Updated to include ProfileViewScreen and HelpSupportScreen
-function ProfileStackScreen() {
+// Stack for Profile tab
+function ProfileStackScreen({ route }) {
+  // Get user data for Profile screens
+  const userData = route.params?.user || {};
+  const token = route.params?.token || '';
+
   return (
     <ProfileStack.Navigator screenOptions={{ headerShown: false }}>
-      <ProfileStack.Screen name="ProfileMain" component={ProfileScreen} />
+      <ProfileStack.Screen 
+        name="ProfileMain" 
+        component={ProfileScreen}
+        initialParams={{ user: userData, token: token }}
+      />
       <ProfileStack.Screen name="ProfileView" component={ProfileViewScreen} />
       <ProfileStack.Screen name="HelpSupport" component={HelpSupportScreen} />
       <ProfileStack.Screen name="About" component={AboutScreen} />
-      <Stack.Screen name="NotificationScreen" component={NotificationScreen} />
+      <ProfileStack.Screen name="NotificationScreen" component={NotificationScreen} />
     </ProfileStack.Navigator>
   );
 }
@@ -65,15 +93,25 @@ const getTabBarVisibility = (route) => {
   const routeName = getFocusedRouteNameFromRoute(route) ?? 'ProfileMain';
   
   // Hide tab bar for these screens
-  if (routeName === 'ProfileView' || routeName === 'HelpSupport'  || routeName === 'About') {
+  if (routeName === 'ProfileView' || routeName === 'HelpSupport'  || routeName === 'About' || routeName === 'NotificationScreen') {
     return false;
   }
   
   return true;
 };
 
-// Main Tab Navigator (Protected Routes)
-function MainTabNavigator() {
+// Main Tab Navigator (Protected Routes) - FIXED: Added route parameter
+function MainTabNavigator({ route }) {
+  // Get the user data from the navigation params passed from LoginScreen
+  const userData = route.params?.user || {};
+  const token = route.params?.token || '';
+
+  console.log('📱 MainTabNavigator received params:', { 
+    hasUser: !!userData.name, 
+    userName: userData.name,
+    tokenLength: token?.length || 0
+  });
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -104,11 +142,20 @@ function MainTabNavigator() {
         tabBarInactiveTintColor: "#6b7280",
       })}
     >
-      <Tab.Screen name="Home" component={HomeStackScreen} />
-      <Tab.Screen name="Crop" component={CropStackScreen} />
+      <Tab.Screen 
+        name="Home" 
+        component={HomeStackScreen}
+        initialParams={{ user: userData, token: token }}
+      />
+      <Tab.Screen 
+        name="Crop" 
+        component={CropStackScreen}
+        initialParams={{ user: userData, token: token }}
+      />
       <Tab.Screen 
         name="Profile" 
         component={ProfileStackScreen}
+        initialParams={{ user: userData, token: token }}
         options={({ route }) => ({
           tabBarStyle: {
             display: getTabBarVisibility(route) ? 'flex' : 'none',

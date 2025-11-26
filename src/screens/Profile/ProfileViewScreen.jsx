@@ -7,45 +7,144 @@ import {
   Alert,
   Dimensions,
   StatusBar,
+  RefreshControl,
+  ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import ApiService from '../../services/ApiService';
+import AuthService from '../../services/AuthService';
 
 const { width: screenWidth } = Dimensions.get('window');
 
 const ProfileViewScreen = ({ route }) => {
   const navigation = useNavigation();
   const [profileData, setProfileData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [cropStats, setCropStats] = useState({
+    totalCrops: 0,
+    totalArea: 0,
+    verifiedCrops: 0
+  });
   
-  useEffect(() => {
-    loadProfileData();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      loadProfileData();
+      return () => {};
+    }, [])
+  );
 
   const loadProfileData = async () => {
     try {
-      // Create mock user data directly instead of using AuthService
-      const mockUserData = {
-        id: 'demo-user-123',
-        name: 'Demo Farmer',
-        mobileNumber: '9876543210',
-        aadhaarNumber: '1234 5678 9012',
-        contactNumber: '9876543210',
-        village: 'Demo Village',
-        taluka: 'Demo Taluka',
-        district: 'Demo District',
-        pincode: '123456',
-        createdAt: new Date().toISOString(),
-      };
+      setLoading(true);
       
-      setProfileData(mockUserData);
+      // First try to get user data from route params (from login)
+      if (route.params?.fullUserData) {
+        console.log('📱 Using user data from route params');
+        setProfileData(route.params.fullUserData);
+        await fetchCropStats(route.params.fullUserData._id);
+        return;
+      }
+
+      // Fallback to AuthService
+      const userData = await AuthService.getUserData();
+      const userId = await AuthService.getUserId();
+      
+      console.log('👤 AuthService user ID:', userId);
+      console.log('👤 AuthService user data:', userData);
+
+      if (userData) {
+        setProfileData(userData);
+        await fetchCropStats(userData._id || userId);
+      } else if (userId) {
+        // Fetch fresh data from backend
+        await fetchFarmerProfile(userId);
+      } else {
+        Alert.alert('Error', 'User not authenticated. Please login again.');
+        navigation.navigate('Login');
+      }
     } catch (error) {
-      console.log('Error loading profile data:', error);
+      console.log('❌ Error loading profile data:', error);
+      Alert.alert('Error', 'Failed to load profile data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchFarmerProfile = async (userId) => {
+    try {
+      console.log('📡 Fetching farmer profile for ID:', userId);
+      const response = await ApiService.get(`/farmer/${userId}`);
+      console.log('✅ Farmer profile response:', response);
+      
+      if (response && response.farmer) {
+        setProfileData(response.farmer);
+        await fetchCropStats(userId);
+      }
+    } catch (error) {
+      console.log('❌ Error fetching farmer profile:', error);
+      throw error;
+    }
+  };
+
+  const fetchCropStats = async (farmerId) => {
+    try {
+      if (!farmerId) {
+        console.log('❌ No farmer ID provided for crop stats');
+        return;
+      }
+
+      console.log('🌱 Fetching crop stats for farmer:', farmerId);
+      const response = await ApiService.get(`/crop/by-farmer/${farmerId}`);
+      console.log('✅ Crop stats response:', response);
+      
+      if (response && response.crops) {
+        const crops = response.crops;
+        const totalCrops = crops.length;
+        
+        // Calculate total area - handle different area field structures
+        const totalArea = crops.reduce((total, crop) => {
+          const areaValue = crop.area?.value || crop.area || 0;
+          return total + (parseFloat(areaValue) || 0);
+        }, 0);
+        
+        // Count verified crops based on applicationStatus
+        const verifiedCrops = crops.filter(crop => 
+          crop.applicationStatus === 'verified' || crop.applicationStatus === 'approved'
+        ).length;
+
+        setCropStats({
+          totalCrops,
+          totalArea: parseFloat(totalArea.toFixed(2)),
+          verifiedCrops
+        });
+      }
+    } catch (error) {
+      console.log('❌ Error fetching crop stats:', error);
+      // Set default values if API fails
+      setCropStats({
+        totalCrops: 0,
+        totalArea: 0,
+        verifiedCrops: 0
+      });
+    }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await loadProfileData();
+    } catch (error) {
+      console.log('❌ Refresh error:', error);
+    } finally {
+      setRefreshing(false);
     }
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return '';
+    if (!dateString) return 'Not available';
     try {
       const date = new Date(dateString);
       return date.toLocaleDateString('en-IN', {
@@ -58,16 +157,21 @@ const ProfileViewScreen = ({ route }) => {
     }
   };
 
+  const formatAadhaar = (aadhaar) => {
+    if (!aadhaar) return 'Not available';
+    const cleaned = aadhaar.replace(/\s/g, '');
+    if (cleaned.length === 12) {
+      return `${cleaned.substring(0, 4)} ${cleaned.substring(4, 8)} ${cleaned.substring(8, 12)}`;
+    }
+    return aadhaar;
+  };
+
   const navigateToEditProfile = () => {
     if (profileData) {
-      // First check if the screen exists, if not show alert
-      Alert.alert(
-        'Edit Profile', 
-        'Edit profile feature will be available soon!',
-        [{ text: 'OK' }]
-      );
-      // Alternatively, you can navigate to a different screen:
-      // navigation.navigate('EditProfile', { farmer: profileData });
+      navigation.navigate('EditFarmerDetails', { 
+        farmer: profileData,
+        onProfileUpdate: loadProfileData
+      });
     } else {
       Alert.alert('Error', 'Profile data not available for editing');
     }
@@ -77,16 +181,18 @@ const ProfileViewScreen = ({ route }) => {
     navigation.goBack();
   };
 
-  // Get profile data with fallbacks
-  const name = profileData?.name || 'Demo Farmer';
-  const aadhaar = profileData?.aadhaarNumber || profileData?.aadhaar_number || '1234 5678 9012';
-  const contact = profileData?.contactNumber || profileData?.contact_number || '9876543210';
-  const village = profileData?.village || 'Demo Village';
-  const taluka = profileData?.taluka || 'Demo Taluka';
-  const district = profileData?.district || 'Demo District';
-  const pincode = profileData?.pincode || '123456';
-  const id = profileData?.id || profileData?._id || '';
-  const createdAt = formatDate(profileData?.createdAt || profileData?.created_at || new Date().toISOString());
+  // Get profile data with proper fallbacks for backend field names
+  const name = profileData?.name || 'User';
+  const aadhaar = formatAadhaar(profileData?.aadhaarNumber);
+  const contact = profileData?.contact || profileData?.phoneNumber || 'Not available';
+  const village = profileData?.village || 'Not available';
+  const taluka = profileData?.taluka || 'Not available';
+  const district = profileData?.district || 'Not available';
+  const pincode = profileData?.pincode || 'Not available';
+  const state = profileData?.state || 'Not available';
+  const landMark = profileData?.landMark || 'Not available';
+  const id = profileData?._id || '';
+  const createdAt = formatDate(profileData?.createdAt);
 
   const buildProfileHeader = () => (
     <View className="mt-2 rounded-2xl overflow-hidden shadow-lg shadow-green-500/30">
@@ -97,12 +203,19 @@ const ProfileViewScreen = ({ route }) => {
         <View className="flex-row items-center">
           <View className="w-17 h-17 rounded-full bg-white/25 justify-center items-center mr-5">
             <Text className="text-2xl font-bold text-white">
-              {name ? name.substring(0, 2).toUpperCase() : 'DF'}
+              {name ? name.substring(0, 2).toUpperCase() : 'US'}
             </Text>
           </View>
-          <Text className="flex-1 text-2xl font-bold text-white -tracking-tight" numberOfLines={2}>
-            {name}
-          </Text>
+          <View className="flex-1">
+            <Text className="text-2xl font-bold text-white -tracking-tight" numberOfLines={2}>
+              {name}
+            </Text>
+            {id && (
+              <Text className="text-white/80 text-sm mt-1">
+                ID: {id.substring(0, 8)}...
+              </Text>
+            )}
+          </View>
         </View>
       </LinearGradient>
     </View>
@@ -111,24 +224,27 @@ const ProfileViewScreen = ({ route }) => {
   const buildQuickStats = () => (
     <View className="flex-row justify-between">
       <StatCard
+        key="total-crops"
         title="Total Crops"
-        value="12"
+        value={cropStats.totalCrops.toString()}
         unit=""
         icon="🌱"
         color="#2196F3"
       />
       <View className="w-3" />
       <StatCard
+        key="total-area"
         title="Total Area"
-        value="45"
+        value={cropStats.totalArea.toString()}
         unit="acres"
         icon="🌾"
         color="#FF9800"
       />
       <View className="w-3" />
       <StatCard
+        key="verified-crops"
         title="Verified Crops"
-        value="8"
+        value={cropStats.verifiedCrops.toString()}
         unit=""
         icon="✅"
         color="#4CAF50"
@@ -152,8 +268,19 @@ const ProfileViewScreen = ({ route }) => {
     </View>
   );
 
-  // Fixed buildDetailRow with proper keys
-  const buildDetailRow = (title, value, icon, color, isLast = false, key) => (
+  const buildDetailsSection = ({ title, sectionIcon, children }) => (
+    <View className="bg-white rounded-2xl shadow-lg mb-6">
+      <View className="flex-row items-center p-6 pb-4">
+        <View className="w-9 h-9 bg-blue-50 rounded-xl justify-center items-center mr-3">
+          <Text className="text-base text-blue-700">{sectionIcon}</Text>
+        </View>
+        <Text className="text-lg font-bold text-gray-800 flex-1">{title}</Text>
+      </View>
+      {children}
+    </View>
+  );
+
+  const buildDetailRow = (key, title, value, icon, color, isLast = false) => (
     <View 
       key={key}
       className={`flex-row items-center px-6 py-3 ${!isLast && 'border-b border-gray-100'}`}
@@ -173,100 +300,128 @@ const ProfileViewScreen = ({ route }) => {
     </View>
   );
 
-  const buildDetailsSection = ({ title, sectionIcon, details, sectionKey }) => (
-    <View key={sectionKey} className="bg-white rounded-2xl shadow-lg">
-      <View className="flex-row items-center p-6 pb-4">
-        <View className="w-9 h-9 bg-blue-50 rounded-xl justify-center items-center mr-3">
-          <Text className="text-base text-blue-700">{sectionIcon}</Text>
-        </View>
-        <Text className="text-lg font-bold text-gray-800 flex-1">{title}</Text>
-      </View>
-      {details}
-    </View>
-  );
+  if (loading && !profileData) {
+    return (
+      <SafeAreaProvider>
+        <SafeAreaView className="flex-1 bg-green-50">
+          <StatusBar backgroundColor="#2E7D32" barStyle="light-content" />
+          <LinearGradient
+            colors={['#2E7D32', '#4CAF50']}
+            className="pt-12 pb-4 shadow-lg"
+          >
+            <View className="flex-row items-center justify-between px-4">
+              <TouchableOpacity 
+                className="w-10 h-10 bg-white/20 rounded-xl justify-center items-center"
+                onPress={handleBack}
+              >
+                <Text className="text-white text-lg font-bold">←</Text>
+              </TouchableOpacity>
+              
+              <Text className="text-white text-xl font-semibold">Profile Details</Text>
+              
+              <View className="w-10 h-10" />
+            </View>
+          </LinearGradient>
+          
+          <View className="flex-1 justify-center items-center">
+            <ActivityIndicator size="large" color="#16a34a" />
+            <Text className="text-green-600 text-lg mt-4">Loading profile...</Text>
+          </View>
+        </SafeAreaView>
+      </SafeAreaProvider>
+    );
+  }
 
   return (
-    <SafeAreaView className="flex-1 bg-green-50">
-      <StatusBar backgroundColor="#2E7D32" barStyle="light-content" />
-      
-      {/* Custom Header - Profile Details */}
-      <LinearGradient
-        colors={['#2E7D32', '#4CAF50']}
-        className="pt-12 pb-4 shadow-lg"
-      >
-        <View className="flex-row items-center justify-between px-4">
-          <TouchableOpacity 
-            className="w-10 h-10 bg-white/20 rounded-xl justify-center items-center"
-            onPress={handleBack}
-          >
-            <Text className="text-white text-lg font-bold">←</Text>
-          </TouchableOpacity>
-          
-          <Text className="text-white text-xl font-semibold">Profile Details</Text>
-          
-          <TouchableOpacity 
-            className="w-10 h-10 bg-white/20 rounded-xl justify-center items-center"
-            onPress={navigateToEditProfile}
-          >
-            <Text className="text-white text-base">✏️</Text>
-          </TouchableOpacity>
-        </View>
-      </LinearGradient>
+    <SafeAreaProvider>
+      <SafeAreaView className="flex-1 bg-green-50">
+        <StatusBar backgroundColor="#2E7D32" barStyle="light-content" />
+        
+        {/* Custom Header - Profile Details */}
+        <LinearGradient
+          colors={['#2E7D32', '#4CAF50']}
+          className="pt-12 pb-4 shadow-lg"
+        >
+          <View className="flex-row items-center justify-between px-4">
+            <TouchableOpacity 
+              className="w-10 h-10 bg-white/20 rounded-xl justify-center items-center"
+              onPress={handleBack}
+            >
+              <Text className="text-white text-lg font-bold">←</Text>
+            </TouchableOpacity>
+            
+            <Text className="text-white text-xl font-semibold">Profile Details</Text>
+            
+            <TouchableOpacity 
+              className="w-10 h-10 bg-white/20 rounded-xl justify-center items-center"
+              onPress={navigateToEditProfile}
+            >
+              <Text className="text-white text-base">✏️</Text>
+            </TouchableOpacity>
+          </View>
+        </LinearGradient>
 
-      <ScrollView 
-        className="flex-1"
-        contentContainerStyle={{ flexGrow: 1 }}
-        showsVerticalScrollIndicator={false}
-      >
-        <View className="p-5 pb-10">
-          {buildProfileHeader()}
-          <View className="h-6" />
-          {buildQuickStats()}
-          <View className="h-6" />
+        <ScrollView 
+          className="flex-1"
+          contentContainerStyle={{ flexGrow: 1 }}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={['#16a34a']}
+            />
+          }
+        >
+          <View className="p-5 pb-10">
+            {buildProfileHeader()}
+            <View className="h-6" />
+            {buildQuickStats()}
+            <View className="h-6" />
 
-          {/* Personal Information */}
-          {buildDetailsSection({
-            title: "Personal Information",
-            sectionIcon: "👤",
-            sectionKey: "personal-info",
-            details: [
-              buildDetailRow("Name", name, "👨‍🌾", "#4CAF50", false, "name-row"),
-              buildDetailRow("Contact Number", contact, "📞", "#2196F3", false, "contact-row"),
-              buildDetailRow("Aadhaar Number", aadhaar, "🆔", "#FF9800", true, "aadhaar-row"),
-            ]
-          })}
+            {/* Personal Information */}
+            {buildDetailsSection({
+              title: "Personal Information",
+              sectionIcon: "👤",
+              children: [
+                buildDetailRow("name", "Name", name, "👨‍🌾", "#4CAF50"),
+                buildDetailRow("contact", "Contact Number", contact, "📞", "#2196F3"),
+                buildDetailRow("aadhaar", "Aadhaar Number", aadhaar, "🆔", "#FF9800", true),
+              ]
+            })}
 
-          <View className="h-6" />
+            <View className="h-6" />
 
-          {/* Address Information */}
-          {buildDetailsSection({
-            title: "Address Information",
-            sectionIcon: "📍",
-            sectionKey: "address-info",
-            details: [
-              buildDetailRow("Village", village, "🏘️", "#4CAF50", false, "village-row"),
-              buildDetailRow("Taluka", taluka, "🗺️", "#2196F3", false, "taluka-row"),
-              buildDetailRow("District", district, "🏛️", "#FF9800", false, "district-row"),
-              buildDetailRow("Pincode", pincode, "📮", "#F44336", true, "pincode-row"),
-            ]
-          })}
+            {/* Address Information */}
+            {buildDetailsSection({
+              title: "Address Information",
+              sectionIcon: "📍",
+              children: [
+                buildDetailRow("village", "Village", village, "🏘️", "#4CAF50"),
+                buildDetailRow("taluka", "Taluka", taluka, "🗺️", "#2196F3"),
+                buildDetailRow("district", "District", district, "🏛️", "#FF9800"),
+                buildDetailRow("state", "State", state, "🗾", "#9C27B0"),
+                buildDetailRow("pincode", "Pincode", pincode, "📮", "#F44336"),
+                buildDetailRow("landmark", "Landmark", landMark, "📍", "#607D8B", true),
+              ]
+            })}
 
-          <View className="h-6" />
+            <View className="h-6" />
 
-          {/* Account Information */}
-          {buildDetailsSection({
-            title: "Account Information",
-            sectionIcon: "📋",
-            sectionKey: "account-info",
-            details: [
-              buildDetailRow("Registration Date", createdAt, "📅", "#2196F3", true, "registration-row"),
-            ]
-          })}
+            {/* Account Information */}
+            {buildDetailsSection({
+              title: "Account Information",
+              sectionIcon: "📋",
+              children: [
+                buildDetailRow("reg-date", "Registration Date", createdAt, "📅", "#2196F3", true),
+              ]
+            })}
 
-          <View className="h-10" />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+            <View className="h-10" />
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 };
 

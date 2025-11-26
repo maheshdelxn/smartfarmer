@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -15,8 +15,14 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
+import ApiService from '../../services/ApiService';
+import AuthService from '../../services/AuthService';
 
-// Mock implementations
+/**
+ * ------------------------
+ * Mocked strings & constants
+ * ------------------------
+ */
 const AppStrings = {
   getString: (key, langCode = 'en') => {
     const strings = {
@@ -47,6 +53,22 @@ const AppStrings = {
       'enter_landmark': { en: 'Enter landmark', hi: 'लैंडमार्क दर्ज करें' },
       'pincode': { en: 'Pincode', hi: 'पिनकोड' },
       'enter_pincode': { en: 'Enter pincode', hi: 'पिनकोड दर्ज करें' },
+      'Mumbai': { en: 'Mumbai', hi: 'मुंबई' },
+      'Pune': { en: 'Pune', hi: 'पुणे' },
+      'Nagpur': { en: 'Nagpur', hi: 'नागपुर' },
+      'Thane': { en: 'Thane', hi: 'ठाणे' },
+      'Nashik': { en: 'Nashik', hi: 'नाशिक' },
+      'Mumbai City': { en: 'Mumbai City', hi: 'मुंबई सिटी' },
+      'Mumbai Suburban': { en: 'Mumbai Suburban', hi: 'मुंबई उपनगर' },
+      'Pune City': { en: 'Pune City', hi: 'पुणे सिटी' },
+      'Pune Rural': { en: 'Pune Rural', hi: 'पुणे ग्रामीण' },
+      'Baramati': { en: 'Baramati', hi: 'बारामती' },
+      'Nagpur City': { en: 'Nagpur City', hi: 'नागपुर सिटी' },
+      'Nagpur Rural': { en: 'Nagpur Rural', hi: 'नागपुर ग्रामीण' },
+      'Thane City': { en: 'Thane City', hi: 'ठाणे सिटी' },
+      'Thane Rural': { en: 'Thane Rural', hi: 'ठाणे ग्रामीण' },
+      'Nashik City': { en: 'Nashik City', hi: 'नाशिक सिटी' },
+      'Nashik Rural': { en: 'Nashik Rural', hi: 'नाशिक ग्रामीण' },
     };
     return strings[key]?.[langCode] || key;
   }
@@ -62,34 +84,31 @@ const AppConstants = {
   }
 };
 
-// ProgressStep Component
-const ProgressStep = ({ step, title, icon, isSmallScreen, currentStep }) => {
+/**
+ * ------------------------
+ * UI subcomponents
+ * ------------------------
+ */
+
+const ProgressStep = React.memo(({ step, title, icon, isSmallScreen, currentStep }) => {
   const isActive = currentStep >= step;
   const isCompleted = currentStep > step;
 
   return (
     <View className="flex-1 items-center">
       <View
-        className={`rounded-full justify-center items-center mb-1 ${
-          isSmallScreen ? 'w-8 h-8' : 'w-10 h-10'
-        } ${
-          isCompleted
-            ? 'bg-green-500'
-            : isActive
-              ? 'bg-green-700'
-              : 'bg-gray-300'
+        className={`${isSmallScreen ? 'w-8 h-8 rounded-full' : 'w-10 h-10 rounded-full'} justify-center items-center mb-1 ${
+          isCompleted ? 'bg-green-600' : isActive ? 'bg-green-700' : 'bg-gray-300'
         }`}
       >
-        <Feather
-          name={isCompleted ? "check" : icon}
-          size={isSmallScreen ? 16 : 20}
-          color="#FFFFFF"
+        <Feather 
+          name={isCompleted ? 'check' : icon} 
+          size={isSmallScreen ? 16 : 20} 
+          color="#FFFFFF" 
         />
       </View>
-      <Text
-        className={`text-center ${
-          isSmallScreen ? 'text-xs' : 'text-sm'
-        } ${
+      <Text 
+        className={`${isSmallScreen ? 'text-xs' : 'text-sm'} text-center ${
           isActive ? 'text-green-700 font-semibold' : 'text-gray-500'
         }`}
       >
@@ -97,24 +116,38 @@ const ProgressStep = ({ step, title, icon, isSmallScreen, currentStep }) => {
       </Text>
     </View>
   );
-};
+});
 
-// ProgressLine Component
-const ProgressLine = ({ currentStep }) => (
-  <View
-    className={`w-5 h-0.5 ${
+const ProgressLine = React.memo(({ currentStep }) => (
+  <View 
+    className={`w-5 h-1 mx-2 rounded-full ${
       currentStep > 0 ? 'bg-green-700' : 'bg-gray-300'
-    }`}
+    }`} 
   />
+));
+
+const DismissKeyboard = ({ children }) => (
+  <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+    {children}
+  </TouchableWithoutFeedback>
 );
 
+/**
+ * ------------------------
+ * Main screen
+ * ------------------------
+ */
 const FarmerRegistrationScreen = ({ route }) => {
   const navigation = useNavigation();
-  const { initialContact } = route.params || {};
+  const { initialContact } = route?.params || {};
+
+  const { height } = Dimensions.get('window');
+  const isSmallScreen = height < 700;
 
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [langCode, setLangCode] = useState('en');
+  const [langCode] = useState('en');
+
   // Form fields
   const [name, setName] = useState('');
   const [contact, setContact] = useState(initialContact || '');
@@ -124,8 +157,9 @@ const FarmerRegistrationScreen = ({ route }) => {
   const [taluka, setTaluka] = useState('');
   const [district, setDistrict] = useState('');
   const [pincode, setPincode] = useState('');
-  const [state, setState] = useState('Maharashtra');
-  // Autocomplete states
+  const [stateValue] = useState('Maharashtra');
+
+  // Autocomplete / helpers
   const [availableTalukas, setAvailableTalukas] = useState([]);
   const [isDistrictSelected, setIsDistrictSelected] = useState(false);
   const [districtSuggestions, setDistrictSuggestions] = useState([]);
@@ -133,11 +167,8 @@ const FarmerRegistrationScreen = ({ route }) => {
   const [showDistrictSuggestions, setShowDistrictSuggestions] = useState(false);
   const [showTalukaSuggestions, setShowTalukaSuggestions] = useState(false);
 
-  const scrollViewRef = useRef();
-  const { height } = Dimensions.get('window');
-  const isSmallScreen = height < 700;
-
-  // Refs for text inputs
+  // refs
+  const scrollViewRef = useRef(null);
   const nameInputRef = useRef(null);
   const contactInputRef = useRef(null);
   const aadhaarInputRef = useRef(null);
@@ -148,107 +179,99 @@ const FarmerRegistrationScreen = ({ route }) => {
   const pincodeInputRef = useRef(null);
 
   useEffect(() => {
-    if (initialContact) {
-      setContact(initialContact);
-    }
+    if (initialContact) setContact(initialContact);
   }, [initialContact]);
 
-  const getLocalizedDistricts = () => {
-    return Object.keys(AppConstants.maharashtraDistricts).map(district =>
-      AppStrings.getString(district, langCode)
-    );
-  };
+  const getLocalizedDistricts = useCallback(() => {
+    return Object.keys(AppConstants.maharashtraDistricts).map(d => AppStrings.getString(d, langCode));
+  }, [langCode]);
 
-  const getEnglishDistrictFromLocalized = (localized) => {
+  const getEnglishDistrictFromLocalized = useCallback((localized) => {
     return Object.keys(AppConstants.maharashtraDistricts).find(
-      district => AppStrings.getString(district, langCode) === localized
+      (district) => AppStrings.getString(district, langCode) === localized
     ) || localized;
-  };
+  }, [langCode]);
 
-  const getLocalizedTalukas = (district) => {
-    const englishDistrict = getEnglishDistrictFromLocalized(district);
+  const getLocalizedTalukas = useCallback((districtLocal) => {
+    const englishDistrict = getEnglishDistrictFromLocalized(districtLocal);
     const talukas = AppConstants.maharashtraDistricts[englishDistrict] || [];
-    return talukas.map(taluka => AppStrings.getString(taluka, langCode));
-  };
+    return talukas.map(t => AppStrings.getString(t, langCode));
+  }, [getEnglishDistrictFromLocalized, langCode]);
 
-  const handleDistrictChange = (text) => {
+  const handleNameChange = useCallback((text) => setName(text), []);
+  const handleContactChange = useCallback((text) => {
+    const numericText = text.replace(/[^0-9]/g, '');
+    if (numericText.length <= 10) setContact(numericText);
+  }, []);
+  const handleAadhaarChange = useCallback((text) => {
+    const numericText = text.replace(/[^0-9]/g, '');
+    if (numericText.length <= 12) setAadhaar(numericText);
+  }, []);
+  const handlePincodeChange = useCallback((text) => {
+    const numericText = text.replace(/[^0-9]/g, '');
+    if (numericText.length <= 6) setPincode(numericText);
+  }, []);
+
+  const handleDistrictChange = useCallback((text) => {
     setDistrict(text);
+
+    if (!text || text.length === 0) {
+      setDistrictSuggestions([]);
+      setShowDistrictSuggestions(false);
+      setIsDistrictSelected(false);
+      setAvailableTalukas([]);
+      setTaluka('');
+      return;
+    }
+
     const suggestions = getLocalizedDistricts().filter(item =>
       item.toLowerCase().includes(text.toLowerCase())
     );
     setDistrictSuggestions(suggestions);
-    setShowDistrictSuggestions(text.length > 0);
-    
-    if (text.length === 0) {
-      setIsDistrictSelected(false);
-      setAvailableTalukas([]);
-      setTaluka('');
-    }
-  };
+    setShowDistrictSuggestions(true);
+  }, [getLocalizedDistricts]);
 
-  const selectDistrict = (selectedDistrict) => {
+  const selectDistrict = useCallback((selectedDistrict) => {
     setDistrict(selectedDistrict);
     setShowDistrictSuggestions(false);
-    
+
     const englishDistrict = getEnglishDistrictFromLocalized(selectedDistrict);
     const talukas = AppConstants.maharashtraDistricts[englishDistrict] || [];
-    setAvailableTalukas(talukas.map(taluka => AppStrings.getString(taluka, langCode)));
+    setAvailableTalukas(talukas.map(t => AppStrings.getString(t, langCode)));
     setIsDistrictSelected(true);
     setTalukaSuggestions(getLocalizedTalukas(selectedDistrict));
-    
-    // Focus on taluka input after district selection
-    setTimeout(() => {
-      talukaInputRef.current?.focus();
-    }, 100);
-  };
 
-  const handleTalukaChange = (text) => {
+    setTimeout(() => talukaInputRef.current?.focus(), 100);
+  }, [getEnglishDistrictFromLocalized, getLocalizedTalukas, langCode]);
+
+  const handleTalukaChange = useCallback((text) => {
     setTaluka(text);
-    if (isDistrictSelected) {
-      const suggestions = availableTalukas.filter(item =>
-        item.toLowerCase().includes(text.toLowerCase())
-      );
-      setTalukaSuggestions(suggestions);
-      setShowTalukaSuggestions(text.length > 0);
+    if (!isDistrictSelected) {
+      setTalukaSuggestions([]);
+      setShowTalukaSuggestions(false);
+      return;
     }
-  };
 
-  const selectTaluka = (selectedTaluka) => {
+    if (!text || text.length === 0) {
+      setTalukaSuggestions(availableTalukas);
+      setShowTalukaSuggestions(false);
+      return;
+    }
+
+    const suggestions = availableTalukas.filter(item =>
+      item.toLowerCase().includes(text.toLowerCase())
+    );
+    setTalukaSuggestions(suggestions);
+    setShowTalukaSuggestions(true);
+  }, [availableTalukas, isDistrictSelected]);
+
+  const selectTaluka = useCallback((selectedTaluka) => {
     setTaluka(selectedTaluka);
     setShowTalukaSuggestions(false);
-    
-    // Focus on village input after taluka selection
-    setTimeout(() => {
-      villageInputRef.current?.focus();
-    }, 100);
-  };
+    setTimeout(() => villageInputRef.current?.focus(), 100);
+  }, []);
 
-  const handleNameChange = (text) => {
-    setName(text);
-  };
-
-  const handleContactChange = (text) => {
-    const numericText = text.replace(/[^0-9]/g, '');
-    if (numericText.length <= 10) {
-      setContact(numericText);
-    }
-  };
-
-  const handleAadhaarChange = (text) => {
-    const numericText = text.replace(/[^0-9]/g, '');
-    if (numericText.length <= 12) {
-      setAadhaar(numericText);
-    }
-  };
-
-  const handlePincodeChange = (text) => {
-    const numericText = text.replace(/[^0-9]/g, '');
-    if (numericText.length <= 6) {
-      setPincode(numericText);
-    }
-  };
-
-  const validateCurrentStep = () => {
+  const validateCurrentStep = useCallback(() => {
     if (currentStep === 0) {
       if (!name || name.length < 2) return false;
       if (!contact || contact.length !== 10) return false;
@@ -262,108 +285,129 @@ const FarmerRegistrationScreen = ({ route }) => {
       if (!pincode || pincode.length !== 6) return false;
       return true;
     }
-  };
+  }, [currentStep, name, contact, aadhaar, village, landmark, district, taluka, pincode]);
 
-  const nextStep = () => {
+  const nextStep = useCallback(() => {
     if (validateCurrentStep() && currentStep < 1) {
-      setCurrentStep(currentStep + 1);
-      // Auto-focus on first field of next step
-      setTimeout(() => {
-        districtInputRef.current?.focus();
-      }, 300);
+      setCurrentStep(s => s + 1);
+      setTimeout(() => districtInputRef.current?.focus(), 300);
     } else {
-      Alert.alert(
-        'Validation Error',
-        'Please fill all required fields with valid information',
-        [{ text: 'OK' }]
-      );
+      Alert.alert('Validation Error', 'Please fill all required fields with valid information', [{ text: 'OK' }]);
     }
-  };
+  }, [validateCurrentStep, currentStep]);
 
-  const previousStep = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
+  const previousStep = useCallback(() => setCurrentStep(s => Math.max(0, s - 1)), []);
 
-  const handleRegistration = async () => {
-    if (!validateCurrentStep()) {
-      Alert.alert(
-        'Validation Error',
-        'Please fill all required fields with valid information',
-        [{ text: 'OK' }]
-      );
-      return;
-    }
+  /**
+   * BACKEND INTEGRATION - Registration Function
+   */
+  const handleRegistration = useCallback(async () => {
+  if (!validateCurrentStep()) {
+    Alert.alert('Validation Error', 'Please fill all required fields with valid information', [{ text: 'OK' }]);
+    return;
+  }
+  
+  setIsLoading(true);
+  try {
+    console.log('📝 Starting farmer registration...');
+    
+    const registrationData = {
+      name: name.trim(),
+      contact: contact,
+      aadhaarNumber: aadhaar,
+      village: village.trim(),
+      landMark: landmark.trim(),
+      taluka: taluka,
+      district: district,
+      pincode: pincode,
+      state: stateValue
+    };
 
-    setIsLoading(true);
+    console.log('📤 Sending registration data:', registrationData);
 
-    try {
-      // Mock registration
-      const registrationResult = {
-        success: true,
-        message: 'Registration successful',
-        farmer: {
-          _id: '12345',
-          name: name,
-          contact: contact,
-          aadhaarNumber: aadhaar,
-          village: village,
-          landMark: landmark,
-          taluka: taluka,
-          district: district,
-          pincode: pincode,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        }
-      };
+    const response = await ApiService.post('/farmer/register/contact', registrationData);
+    
+    console.log('✅ Registration response:', response);
 
-      if (registrationResult.success) {
-        Alert.alert('Success', registrationResult.message);
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'MainApp' }],
-        });
-      } else {
-        Alert.alert('Error', registrationResult.message || 'Registration failed');
+    if (response && (response.success || response.message === 'New Farmer Created with Contact')) {
+      // Store user data and token
+      if (response.token && response.farmer) {
+        await AuthService.storeAuthData(response.token, response.farmer);
+        console.log('✅ User data stored successfully');
       }
-    } catch (error) {
-      console.error('Registration error:', error);
-      Alert.alert('Error', 'Registration failed: an internal error occurred');
-    } finally {
-      setIsLoading(false);
+      
+      Alert.alert(
+        'Success', 
+        response.message || 'Registration successful!',
+        [
+          { 
+            text: 'OK', 
+            onPress: () => {
+              // Navigate to main app
+              navigation.reset({ 
+                index: 0, 
+                routes: [{ name: 'MainApp' }] 
+              });
+            }
+          }
+        ]
+      );
+    } else {
+      throw new Error(response.message || 'Registration failed');
     }
-  };
+  } catch (error) {
+    console.error('❌ Registration error:', error);
+    
+    let errorMessage = 'Registration failed. Please try again.';
+    
+    if (error.message?.includes('already exists') || error.message?.includes('duplicate')) {
+      errorMessage = 'This contact number or Aadhaar is already registered.';
+    } else if (error.message?.includes('network') || error.message?.includes('timeout')) {
+      errorMessage = 'Network error. Please check your connection and try again.';
+    } else if (error.response?.data?.message) {
+      errorMessage = error.response.data.message;
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
+    Alert.alert('Registration Failed', errorMessage);
+  } finally {
+    setIsLoading(false);
+  }
+}, [
+  validateCurrentStep, name, contact, aadhaar, village, landmark, 
+  taluka, district, pincode, stateValue, navigation
+]);
 
-  // Personal Information Step Component
-  const PersonalInfoStep = () => (
+  const PersonalInfoStep = useMemo(() => (
     <View className="flex-1">
       <ScrollView
         ref={scrollViewRef}
         className="flex-1"
-        contentContainerStyle={{ padding: 16, paddingBottom: 20 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
         showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
+        keyboardShouldPersistTaps="always"
+        keyboardDismissMode="none"
       >
-        <Text className="text-xl font-semibold text-black mb-2">
+        <Text className="text-xl font-bold text-black mb-2">
           {AppStrings.getString('personal_information', langCode)}
         </Text>
-        <Text className="text-sm text-gray-500 mb-6 leading-5">
+        <Text className="text-sm text-gray-500 mb-4 leading-5">
           {AppStrings.getString('please_provide_basic_info', langCode)}
         </Text>
 
         {/* Name Input */}
         <View className="mb-4">
-          <Text className="text-sm font-medium text-black mb-2">
+          <Text className="text-sm font-semibold text-black mb-2">
             {AppStrings.getString('full_name', langCode)}
           </Text>
-          <View className="flex-row items-center border border-gray-300 rounded-xl bg-white">
+          <View className="flex-row items-center border border-gray-300 rounded-xl bg-white overflow-hidden">
             <View className="p-3">
               <Feather name="user" size={20} color="#2E7D32" />
             </View>
             <TextInput
               ref={nameInputRef}
-              className="flex-1 p-3 text-base text-black"
+              className="flex-1 py-3 px-2 text-base text-black"
               value={name}
               onChangeText={handleNameChange}
               placeholder={AppStrings.getString('enter_full_name', langCode)}
@@ -376,16 +420,16 @@ const FarmerRegistrationScreen = ({ route }) => {
 
         {/* Contact Input */}
         <View className="mb-4">
-          <Text className="text-sm font-medium text-black mb-2">
+          <Text className="text-sm font-semibold text-black mb-2">
             {AppStrings.getString('contact_number', langCode)}
           </Text>
-          <View className="flex-row items-center border border-gray-300 rounded-xl bg-white">
+          <View className="flex-row items-center border border-gray-300 rounded-xl bg-white overflow-hidden">
             <View className="p-3">
               <Feather name="phone" size={20} color="#2E7D32" />
             </View>
             <TextInput
               ref={contactInputRef}
-              className="flex-1 p-3 text-base text-black"
+              className="flex-1 py-3 px-2 text-base text-black"
               value={contact}
               onChangeText={handleContactChange}
               placeholder={AppStrings.getString('enter_mobile_number', langCode)}
@@ -400,16 +444,16 @@ const FarmerRegistrationScreen = ({ route }) => {
 
         {/* Aadhaar Input */}
         <View className="mb-4">
-          <Text className="text-sm font-medium text-black mb-2">
+          <Text className="text-sm font-semibold text-black mb-2">
             {AppStrings.getString('aadhaar_number', langCode)}
           </Text>
-          <View className="flex-row items-center border border-gray-300 rounded-xl bg-white">
+          <View className="flex-row items-center border border-gray-300 rounded-xl bg-white overflow-hidden">
             <View className="p-3">
               <Feather name="credit-card" size={20} color="#2E7D32" />
             </View>
             <TextInput
               ref={aadhaarInputRef}
-              className="flex-1 p-3 text-base text-black"
+              className="flex-1 py-3 px-2 text-base text-black"
               value={aadhaar}
               onChangeText={handleAadhaarChange}
               placeholder={AppStrings.getString('enter_aadhaar_number', langCode)}
@@ -423,55 +467,55 @@ const FarmerRegistrationScreen = ({ route }) => {
         </View>
       </ScrollView>
     </View>
-  );
+  ), [name, contact, aadhaar, handleNameChange, handleContactChange, handleAadhaarChange, langCode, nextStep]);
 
-  // Address Information Step Component
-  const AddressStep = () => (
+  const AddressStep = useMemo(() => (
     <View className="flex-1">
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ padding: 16, paddingBottom: 20 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
         showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
+        keyboardShouldPersistTaps="always"
+        keyboardDismissMode="none"
       >
-        <Text className="text-xl font-semibold text-black mb-2">
+        <Text className="text-xl font-bold text-black mb-2">
           {AppStrings.getString('address_information', langCode)}
         </Text>
-        <Text className="text-sm text-gray-500 mb-6 leading-5">
+        <Text className="text-sm text-gray-500 mb-4 leading-5">
           {AppStrings.getString('please_provide_address', langCode)}
         </Text>
 
-        {/* State Input (Disabled) */}
+        {/* State (disabled) */}
         <View className="mb-4">
-          <Text className="text-sm font-medium text-black mb-2">
+          <Text className="text-sm font-semibold text-black mb-2">
             {AppStrings.getString('state', langCode)}
           </Text>
-          <View className="flex-row items-center border border-gray-300 rounded-xl bg-gray-100">
+          <View className="flex-row items-center border border-gray-300 rounded-xl bg-gray-100 overflow-hidden">
             <View className="p-3">
               <Feather name="map-pin" size={20} color="#2E7D32" />
             </View>
             <TextInput
-              className="flex-1 p-3 text-base text-gray-600"
-              value={state}
+              className="flex-1 py-3 px-2 text-base text-gray-500"
+              value={stateValue}
+              editable={false}
               placeholder={AppStrings.getString('your_state', langCode)}
               placeholderTextColor="#999"
-              editable={false}
             />
           </View>
         </View>
 
-        {/* District Input with Autocomplete */}
+        {/* District with autocomplete */}
         <View className="mb-4 relative z-50">
-          <Text className="text-sm font-medium text-black mb-2">
+          <Text className="text-sm font-semibold text-black mb-2">
             {AppStrings.getString('district', langCode)}
           </Text>
-          <View className="flex-row items-center border border-gray-300 rounded-xl bg-white">
+          <View className="flex-row items-center border border-gray-300 rounded-xl bg-white overflow-hidden">
             <View className="p-3">
               <Feather name="flag" size={20} color="#2E7D32" />
             </View>
             <TextInput
               ref={districtInputRef}
-              className="flex-1 p-3 text-base text-black"
+              className="flex-1 py-3 px-2 text-base text-black"
               value={district}
               onChangeText={handleDistrictChange}
               placeholder={AppStrings.getString('enter_district', langCode)}
@@ -479,21 +523,17 @@ const FarmerRegistrationScreen = ({ route }) => {
               returnKeyType="next"
             />
           </View>
+
           {showDistrictSuggestions && districtSuggestions.length > 0 && (
-            <View className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-lg mt-1 shadow-lg elevation-8" style={{ maxHeight: 200, zIndex: 1000 }}>
-              <ScrollView
-                keyboardShouldPersistTaps="always"
-                nestedScrollEnabled={true}
-              >
-                {districtSuggestions.map((item, index) => (
+            <View className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-xl mt-2 max-h-48 shadow-lg z-50">
+              <ScrollView keyboardShouldPersistTaps="always" nestedScrollEnabled>
+                {districtSuggestions.map((item, idx) => (
                   <TouchableOpacity
-                    key={index}
-                    className="p-4 border-b border-gray-100"
-                    onPress={() => {
-                      selectDistrict(item);
-                    }}
+                    key={idx}
+                    className="py-3 px-4 border-b border-gray-100"
+                    onPress={() => selectDistrict(item)}
                   >
-                    <Text className="text-base text-black">{item}</Text>
+                    <Text className="text-base text-gray-800">{item}</Text>
                   </TouchableOpacity>
                 ))}
               </ScrollView>
@@ -501,44 +541,41 @@ const FarmerRegistrationScreen = ({ route }) => {
           )}
         </View>
 
-        {/* Taluka Input with Autocomplete */}
+        {/* Taluka with autocomplete */}
         <View className="mb-4 relative z-40">
-          <Text className="text-sm font-medium text-black mb-2">
+          <Text className="text-sm font-semibold text-black mb-2">
             {AppStrings.getString('taluka', langCode)}
           </Text>
-          <View className={`flex-row items-center border border-gray-300 rounded-xl ${!isDistrictSelected ? 'bg-gray-100' : 'bg-white'}`}>
+          <View className={`flex-row items-center border border-gray-300 rounded-xl overflow-hidden ${
+            !isDistrictSelected ? 'bg-gray-100' : 'bg-white'
+          }`}>
             <View className="p-3">
               <Feather name="map" size={20} color="#2E7D32" />
             </View>
             <TextInput
               ref={talukaInputRef}
-              className={`flex-1 p-3 text-base ${!isDistrictSelected ? 'text-gray-600' : 'text-black'}`}
+              className={`flex-1 py-3 px-2 text-base ${
+                !isDistrictSelected ? 'text-gray-500' : 'text-black'
+              }`}
               value={taluka}
               onChangeText={handleTalukaChange}
-              placeholder={isDistrictSelected
-                ? AppStrings.getString('select_your_taluka', langCode)
-                : AppStrings.getString('select_district_first', langCode)
-              }
+              placeholder={isDistrictSelected ? AppStrings.getString('select_your_taluka', langCode) : AppStrings.getString('select_district_first', langCode)}
               placeholderTextColor="#999"
               editable={isDistrictSelected}
               returnKeyType="next"
             />
           </View>
+
           {showTalukaSuggestions && talukaSuggestions.length > 0 && (
-            <View className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-lg mt-1 shadow-lg elevation-8" style={{ maxHeight: 200, zIndex: 1000 }}>
-              <ScrollView
-                keyboardShouldPersistTaps="always"
-                nestedScrollEnabled={true}
-              >
-                {talukaSuggestions.map((item, index) => (
+            <View className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-xl mt-2 max-h-48 shadow-lg z-50">
+              <ScrollView keyboardShouldPersistTaps="always" nestedScrollEnabled>
+                {talukaSuggestions.map((item, idx) => (
                   <TouchableOpacity
-                    key={index}
-                    className="p-4 border-b border-gray-100"
-                    onPress={() => {
-                      selectTaluka(item);
-                    }}
+                    key={idx}
+                    className="py-3 px-4 border-b border-gray-100"
+                    onPress={() => selectTaluka(item)}
                   >
-                    <Text className="text-base text-black">{item}</Text>
+                    <Text className="text-base text-gray-800">{item}</Text>
                   </TouchableOpacity>
                 ))}
               </ScrollView>
@@ -546,18 +583,18 @@ const FarmerRegistrationScreen = ({ route }) => {
           )}
         </View>
 
-        {/* Village Input */}
+        {/* Village */}
         <View className="mb-4">
-          <Text className="text-sm font-medium text-black mb-2">
+          <Text className="text-sm font-semibold text-black mb-2">
             {AppStrings.getString('village', langCode)}
           </Text>
-          <View className="flex-row items-center border border-gray-300 rounded-xl bg-white">
+          <View className="flex-row items-center border border-gray-300 rounded-xl bg-white overflow-hidden">
             <View className="p-3">
               <Feather name="home" size={20} color="#2E7D32" />
             </View>
             <TextInput
               ref={villageInputRef}
-              className="flex-1 p-3 text-base text-black"
+              className="flex-1 py-3 px-2 text-base text-black"
               value={village}
               onChangeText={setVillage}
               placeholder={AppStrings.getString('enter_village', langCode)}
@@ -568,18 +605,18 @@ const FarmerRegistrationScreen = ({ route }) => {
           </View>
         </View>
 
-        {/* Landmark Input */}
+        {/* Landmark */}
         <View className="mb-4">
-          <Text className="text-sm font-medium text-black mb-2">
+          <Text className="text-sm font-semibold text-black mb-2">
             {AppStrings.getString('landmark', langCode)}
           </Text>
-          <View className="flex-row items-center border border-gray-300 rounded-xl bg-white">
+          <View className="flex-row items-center border border-gray-300 rounded-xl bg-white overflow-hidden">
             <View className="p-3">
               <Feather name="map-pin" size={20} color="#2E7D32" />
             </View>
             <TextInput
               ref={landmarkInputRef}
-              className="flex-1 p-3 text-base text-black"
+              className="flex-1 py-3 px-2 text-base text-black"
               value={landmark}
               onChangeText={setLandmark}
               placeholder={AppStrings.getString('enter_landmark', langCode)}
@@ -590,18 +627,18 @@ const FarmerRegistrationScreen = ({ route }) => {
           </View>
         </View>
 
-        {/* Pincode Input */}
+        {/* Pincode */}
         <View className="mb-4">
-          <Text className="text-sm font-medium text-black mb-2">
+          <Text className="text-sm font-semibold text-black mb-2">
             {AppStrings.getString('pincode', langCode)}
           </Text>
-          <View className="flex-row items-center border border-gray-300 rounded-xl bg-white">
+          <View className="flex-row items-center border border-gray-300 rounded-xl bg-white overflow-hidden">
             <View className="p-3">
               <Feather name="navigation" size={20} color="#2E7D32" />
             </View>
             <TextInput
               ref={pincodeInputRef}
-              className="flex-1 p-3 text-base text-black"
+              className="flex-1 py-3 px-2 text-base text-black"
               value={pincode}
               onChangeText={handlePincodeChange}
               placeholder={AppStrings.getString('enter_pincode', langCode)}
@@ -615,103 +652,108 @@ const FarmerRegistrationScreen = ({ route }) => {
         </View>
       </ScrollView>
     </View>
-  );
-
-  // Dismiss keyboard when tapping outside
-  const DismissKeyboard = ({ children }) => (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      {children}
-    </TouchableWithoutFeedback>
-  );
+  ), [
+    district, districtSuggestions, showDistrictSuggestions,
+    taluka, talukaSuggestions, showTalukaSuggestions,
+    village, landmark, pincode, isDistrictSelected, stateValue,
+    handleDistrictChange, selectDistrict, handleTalukaChange, selectTaluka,
+    handlePincodeChange, handleRegistration, langCode
+  ]);
 
   return (
     <View className="flex-1 bg-white">
-      <KeyboardAvoidingView
-        className="flex-1"
+      <KeyboardAvoidingView 
+        className="flex-1" 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <DismissKeyboard>
           <View className="flex-1">
             {/* Header */}
-            <View className="bg-green-700 flex-row items-center justify-between px-4 py-3 elevation-4 shadow-lg">
-              <TouchableOpacity
-                className="p-1"
+            <View className="bg-green-700 flex-row items-center justify-between px-3 py-3 shadow-md">
+              <TouchableOpacity 
+                className="w-10 h-10 bg-white/20 rounded-xl justify-center items-center"
                 onPress={() => navigation.goBack()}
               >
                 <Feather name="arrow-left" size={24} color="#FFFFFF" />
               </TouchableOpacity>
-              <Text className="text-lg font-semibold text-white">
+              <Text className="text-white text-lg font-semibold">
                 {AppStrings.getString('registration', langCode)}
               </Text>
-              <View className="w-8" />
+              <View className="w-10 h-10" />
             </View>
 
             {/* Progress Bar */}
-            <View className="flex-row items-center px-4 py-3 bg-gray-50 border-b border-gray-300">
-              <ProgressStep
-                step={0}
-                title={AppStrings.getString('personal_information', langCode)}
-                icon="user"
-                isSmallScreen={isSmallScreen}
-                currentStep={currentStep}
+            <View className="flex-row items-center px-3 py-3 bg-gray-50 border-b border-gray-200">
+              <ProgressStep 
+                step={0} 
+                title={AppStrings.getString('personal_information', langCode)} 
+                icon="user" 
+                isSmallScreen={isSmallScreen} 
+                currentStep={currentStep} 
               />
               <ProgressLine currentStep={currentStep} />
-              <ProgressStep
-                step={1}
-                title={AppStrings.getString('address_information', langCode)}
-                icon="map-pin"
-                isSmallScreen={isSmallScreen}
-                currentStep={currentStep}
+              <ProgressStep 
+                step={1} 
+                title={AppStrings.getString('address_information', langCode)} 
+                icon="map-pin" 
+                isSmallScreen={isSmallScreen} 
+                currentStep={currentStep} 
               />
             </View>
 
             {/* Content */}
             <View className="flex-1">
-              {currentStep === 0 && <PersonalInfoStep />}
-              {currentStep === 1 && <AddressStep />}
+              {currentStep === 0 && PersonalInfoStep}
+              {currentStep === 1 && AddressStep}
             </View>
 
             {/* Footer Buttons */}
-            <View className="p-4 border-t border-gray-300 bg-white">
+            <View className="px-4 py-4 border-t border-gray-200 bg-white">
               <View className="flex-row">
                 {currentStep > 0 && (
                   <TouchableOpacity
-                    className={`flex-1 py-4 rounded-xl border border-green-700 mr-4 ${isLoading ? 'opacity-50' : ''}`}
+                    className={`flex-1 py-3 rounded-xl border border-green-700 mr-3 justify-center items-center ${
+                      isLoading ? 'opacity-60' : ''
+                    }`}
                     onPress={previousStep}
                     disabled={isLoading}
                   >
-                    <Text className="text-green-700 text-base font-semibold text-center">
+                    <Text className="text-green-700 text-base font-semibold">
                       {AppStrings.getString('previous', langCode)}
                     </Text>
                   </TouchableOpacity>
                 )}
-                
+
                 {currentStep === 0 && (
                   <TouchableOpacity
-                    className={`flex-1 py-4 rounded-xl bg-green-700 ${isLoading ? 'opacity-50' : ''}`}
+                    className={`flex-1 py-3 rounded-xl bg-green-700 justify-center items-center ${
+                      isLoading ? 'opacity-60' : ''
+                    }`}
                     onPress={nextStep}
                     disabled={isLoading}
                   >
                     {isLoading ? (
                       <ActivityIndicator size="small" color="#FFFFFF" />
                     ) : (
-                      <Text className="text-white text-base font-semibold text-center">
+                      <Text className="text-white text-base font-semibold">
                         {AppStrings.getString('next', langCode)}
                       </Text>
                     )}
                   </TouchableOpacity>
                 )}
-                
+
                 {currentStep === 1 && (
                   <TouchableOpacity
-                    className={`flex-1 py-4 rounded-xl bg-green-700 ${isLoading ? 'opacity-50' : ''}`}
+                    className={`flex-1 py-3 rounded-xl bg-green-700 justify-center items-center ${
+                      isLoading ? 'opacity-60' : ''
+                    }`}
                     onPress={handleRegistration}
                     disabled={isLoading}
                   >
                     {isLoading ? (
                       <ActivityIndicator size="small" color="#FFFFFF" />
                     ) : (
-                      <Text className="text-white text-base font-semibold text-center">
+                      <Text className="text-white text-base font-semibold">
                         {AppStrings.getString('register', langCode)}
                       </Text>
                     )}
