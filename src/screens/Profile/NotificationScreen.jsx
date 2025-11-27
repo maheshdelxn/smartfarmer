@@ -396,26 +396,26 @@ const NotificationScreen = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <StatusBar backgroundColor={primaryColor} barStyle="light-content" />
+      <StatusBar backgroundColor="#ffffff" barStyle="dark-content" />
       
       {/* Header */}
-      <View className="bg-green-600 flex-row items-center justify-between px-4 py-3">
+      <View className="bg-white flex-row items-center justify-between px-4 py-3 border-b border-gray-200">
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Icon name="arrow-back" size={24} color="white" />
+          <Icon name="arrow-back" size={24} color="#374151" />
         </TouchableOpacity>
         
-        <Text className="text-white text-xl font-semibold">Notifications</Text>
+        <Text className="text-gray-800 text-xl font-semibold">Notifications</Text>
         
         <View className="flex-row">
           <TouchableOpacity 
             className="p-2 mr-2"
             onPress={() => setShowFilterModal(true)}
           >
-            <Icon name="filter-alt" size={20} color="white" />
+            <Icon name="filter-alt" size={20} color="#374151" />
           </TouchableOpacity>
           
           <TouchableOpacity className="p-2" onPress={markAllAsRead}>
-            <Icon name="mark-as-unread" size={20} color="white" />
+            <Icon name="mark-as-unread" size={20} color="#374151" />
           </TouchableOpacity>
         </View>
       </View>

@@ -518,13 +518,13 @@ const ProfileScreen = () => {
         </View>
         
         {/* Debug Info - Remove in production */}
-        {__DEV__ && (
+        {/* {__DEV__ && (
           <View className="mx-4 mb-6 bg-gray-100 rounded-2xl p-4">
             <Text className="text-gray-600 text-xs font-mono">
               Debug: Crops: {totalCrops}, Area: {totalArea}, Language: {selectedLanguage}
             </Text>
           </View>
-        )}
+        )} */}
       </ScrollView>
 
       {/* Language Selection Modal */}

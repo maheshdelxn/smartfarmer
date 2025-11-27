@@ -9,7 +9,6 @@ import {
   Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialCommunityIcons, Feather, Ionicons } from '@expo/vector-icons';
 
@@ -142,24 +141,19 @@ const AboutScreen = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-green-50">
-      <StatusBar backgroundColor="#16a34a" barStyle="light-content" />
+      <StatusBar backgroundColor="#ffffff" barStyle="dark-content" />
       
       {/* Custom Header */}
-      <LinearGradient
-        colors={['#16a34a', '#15803d']}
-        className="pt-3 pb-4"
-      >
-        <View className="flex-row items-center justify-between px-4">
-          <TouchableOpacity 
-            className="w-10 h-10 bg-white/20 rounded-xl justify-center items-center"
-            onPress={handleBack}
-          >
-            <Ionicons name="arrow-back" size={24} color="white" />
-          </TouchableOpacity>
-          <Text className="text-white text-xl font-semibold">About</Text>
-          <View className="w-10" />
-        </View>
-      </LinearGradient>
+      <View className="bg-white flex-row items-center justify-between px-4 py-3 border-b border-gray-200">
+        <TouchableOpacity 
+          className="w-10 h-10 bg-gray-100 rounded-xl justify-center items-center"
+          onPress={handleBack}
+        >
+          <Ionicons name="arrow-back" size={24} color="#374151" />
+        </TouchableOpacity>
+        <Text className="text-gray-800 text-xl font-semibold">About</Text>
+        <View className="w-10" />
+      </View>
 
       <ScrollView 
         className="flex-1"
@@ -189,7 +183,6 @@ const AboutScreen = () => {
             title="About App"
             icon="information-circle"
             iconType="Ionicons"
-         
             content="Smart Farmer is a comprehensive mobile application designed to modernize farming practices. Our app provides farmers with real-time insights, market prices, weather alerts, and expert farming tips to maximize productivity and profitability."
           />
 

@@ -9,7 +9,6 @@ import {
   StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import * as WebBrowser from 'expo-web-browser';
 import { MaterialCommunityIcons, Feather, Ionicons } from '@expo/vector-icons';
@@ -197,24 +196,19 @@ const HelpSupportScreen = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-green-50">
-      <StatusBar backgroundColor="#16a34a" barStyle="light-content" />
+      <StatusBar backgroundColor="#ffffff" barStyle="dark-content" />
       
       {/* Custom Header */}
-      <LinearGradient
-        colors={['#16a34a', '#15803d']}
-        className="pt-3 pb-4"
-      >
-        <View className="flex-row items-center justify-between px-4">
-          <TouchableOpacity 
-            className="w-10 h-10 bg-white/20 rounded-xl justify-center items-center"
-            onPress={handleBack}
-          >
-            <Ionicons name="arrow-back" size={24} color="white" />
-          </TouchableOpacity>
-          <Text className="text-white text-xl font-semibold">Help & Support</Text>
-          <View className="w-10" />
-        </View>
-      </LinearGradient>
+      <View className="bg-white flex-row items-center justify-between px-4 py-3 border-b border-gray-200">
+        <TouchableOpacity 
+          className="w-10 h-10 bg-gray-100 rounded-xl justify-center items-center"
+          onPress={handleBack}
+        >
+          <Ionicons name="arrow-back" size={24} color="#374151" />
+        </TouchableOpacity>
+        <Text className="text-gray-800 text-xl font-semibold">Help & Support</Text>
+        <View className="w-10" />
+      </View>
 
       <ScrollView 
         className="flex-1"

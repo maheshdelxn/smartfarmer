@@ -304,24 +304,19 @@ const ProfileViewScreen = ({ route }) => {
     return (
       <SafeAreaProvider>
         <SafeAreaView className="flex-1 bg-green-50">
-          <StatusBar backgroundColor="#2E7D32" barStyle="light-content" />
-          <LinearGradient
-            colors={['#2E7D32', '#4CAF50']}
-            className="pt-12 pb-4 shadow-lg"
-          >
-            <View className="flex-row items-center justify-between px-4">
-              <TouchableOpacity 
-                className="w-10 h-10 bg-white/20 rounded-xl justify-center items-center"
-                onPress={handleBack}
-              >
-                <Text className="text-white text-lg font-bold">←</Text>
-              </TouchableOpacity>
-              
-              <Text className="text-white text-xl font-semibold">Profile Details</Text>
-              
-              <View className="w-10 h-10" />
-            </View>
-          </LinearGradient>
+          <StatusBar backgroundColor="#ffffff" barStyle="dark-content" />
+          <View className="bg-white flex-row items-center justify-between px-4 py-3 border-b border-gray-200">
+            <TouchableOpacity 
+              className="w-10 h-10 bg-gray-100 rounded-xl justify-center items-center"
+              onPress={handleBack}
+            >
+              <Text className="text-gray-700 text-lg font-bold">←</Text>
+            </TouchableOpacity>
+            
+            <Text className="text-gray-800 text-xl font-semibold">Profile Details</Text>
+            
+            <View className="w-10 h-10" />
+          </View>
           
           <View className="flex-1 justify-center items-center">
             <ActivityIndicator size="large" color="#16a34a" />
@@ -335,31 +330,26 @@ const ProfileViewScreen = ({ route }) => {
   return (
     <SafeAreaProvider>
       <SafeAreaView className="flex-1 bg-green-50">
-        <StatusBar backgroundColor="#2E7D32" barStyle="light-content" />
+        <StatusBar backgroundColor="#ffffff" barStyle="dark-content" />
         
         {/* Custom Header - Profile Details */}
-        <LinearGradient
-          colors={['#2E7D32', '#4CAF50']}
-          className="pt-12 pb-4 shadow-lg"
-        >
-          <View className="flex-row items-center justify-between px-4">
-            <TouchableOpacity 
-              className="w-10 h-10 bg-white/20 rounded-xl justify-center items-center"
-              onPress={handleBack}
-            >
-              <Text className="text-white text-lg font-bold">←</Text>
-            </TouchableOpacity>
-            
-            <Text className="text-white text-xl font-semibold">Profile Details</Text>
-            
-            <TouchableOpacity 
-              className="w-10 h-10 bg-white/20 rounded-xl justify-center items-center"
-              onPress={navigateToEditProfile}
-            >
-              <Text className="text-white text-base">✏️</Text>
-            </TouchableOpacity>
-          </View>
-        </LinearGradient>
+        <View className="bg-white flex-row items-center justify-between px-4 py-3 border-b border-gray-200">
+          <TouchableOpacity 
+            className="w-10 h-10 bg-gray-100 rounded-xl justify-center items-center"
+            onPress={handleBack}
+          >
+            <Text className="text-gray-700 text-lg font-bold">←</Text>
+          </TouchableOpacity>
+          
+          <Text className="text-gray-800 text-xl font-semibold">Profile Details</Text>
+          
+          <TouchableOpacity 
+            className="w-10 h-10 bg-gray-100 rounded-xl justify-center items-center"
+            onPress={navigateToEditProfile}
+          >
+            <Text className="text-gray-700 text-base">✏️</Text>
+          </TouchableOpacity>
+        </View>
 
         <ScrollView 
           className="flex-1"

@@ -2,6 +2,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons";
 import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
+
 // Import all your screens
 import HomeScreen from "../src/screens/Home/HomeScreen";
 import CropDetailsScreen from "../src/screens/Home/add_crop"
@@ -26,7 +27,6 @@ const Stack = createStackNavigator();
 
 // Stack for Home tab
 function HomeStackScreen({ route }) {
-  // Get the user data passed from LoginScreen through MainTabNavigator
   const userData = route.params?.user || {};
   const token = route.params?.token || '';
 
@@ -50,7 +50,6 @@ function HomeStackScreen({ route }) {
 
 // Stack for Crop tab
 function CropStackScreen({ route }) {
-  // Get user data for Crop screens if needed
   const userData = route.params?.user || {};
   const token = route.params?.token || '';
 
@@ -69,7 +68,6 @@ function CropStackScreen({ route }) {
 
 // Stack for Profile tab
 function ProfileStackScreen({ route }) {
-  // Get user data for Profile screens
   const userData = route.params?.user || {};
   const token = route.params?.token || '';
 
@@ -80,10 +78,22 @@ function ProfileStackScreen({ route }) {
         component={ProfileScreen}
         initialParams={{ user: userData, token: token }}
       />
-      <ProfileStack.Screen name="ProfileView" component={ProfileViewScreen} />
-      <ProfileStack.Screen name="HelpSupport" component={HelpSupportScreen} />
-      <ProfileStack.Screen name="About" component={AboutScreen} />
-      <ProfileStack.Screen name="NotificationScreen" component={NotificationScreen} />
+      <ProfileStack.Screen 
+        name="ProfileView" 
+        component={ProfileViewScreen}
+      />
+      <ProfileStack.Screen 
+        name="HelpSupport" 
+        component={HelpSupportScreen}
+      />
+      <ProfileStack.Screen 
+        name="About" 
+        component={AboutScreen}
+      />
+      <ProfileStack.Screen 
+        name="NotificationScreen" 
+        component={NotificationScreen}
+      />
     </ProfileStack.Navigator>
   );
 }
@@ -100,9 +110,8 @@ const getTabBarVisibility = (route) => {
   return true;
 };
 
-// Main Tab Navigator (Protected Routes) - FIXED: Added route parameter
+// Main Tab Navigator (Protected Routes)
 function MainTabNavigator({ route }) {
-  // Get the user data from the navigation params passed from LoginScreen
   const userData = route.params?.user || {};
   const token = route.params?.token || '';
 
