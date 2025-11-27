@@ -8,7 +8,8 @@ import {
   Alert,
   Animated,
   RefreshControl,
-  ActivityIndicator
+  ActivityIndicator,
+  Modal
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -25,8 +26,16 @@ const ProfileScreen = () => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [languageModalVisible, setLanguageModalVisible] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState('en'); // Default to English
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  // Load saved language on component mount
+  useEffect(() => {
+    loadSavedLanguage();
+    setupAnimations();
+  }, []);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -35,9 +44,51 @@ const ProfileScreen = () => {
     }, [])
   );
 
-  useEffect(() => {
-    setupAnimations();
-  }, []);
+  const loadSavedLanguage = async () => {
+    try {
+      const savedLanguage = await AsyncStorage.getItem('selectedLanguage');
+      if (savedLanguage) {
+        setSelectedLanguage(savedLanguage);
+      }
+    } catch (error) {
+      console.log('❌ Error loading language:', error);
+    }
+  };
+
+  const saveLanguage = async (languageCode) => {
+    try {
+      await AsyncStorage.setItem('selectedLanguage', languageCode);
+      setSelectedLanguage(languageCode);
+      setLanguageModalVisible(false);
+      
+      // Show success message
+      Alert.alert(
+        getLanguageDisplayName(languageCode),
+        'Language changed successfully!',
+        [{ text: 'OK' }]
+      );
+    } catch (error) {
+      console.log('❌ Error saving language:', error);
+      Alert.alert('Error', 'Failed to save language preference');
+    }
+  };
+
+  const getLanguageDisplayName = (code) => {
+    switch (code) {
+      case 'en':
+        return 'English';
+      case 'hi':
+        return 'हिन्दी';
+      case 'mr':
+        return 'मराठी';
+      default:
+        return code;
+    }
+  };
+
+  const showLanguageDialog = () => {
+    setLanguageModalVisible(true);
+  };
 
   const setupAnimations = () => {
     Animated.timing(fadeAnim, {
@@ -64,7 +115,6 @@ const ProfileScreen = () => {
     try {
       console.log('🔄 Loading profile data...');
       
-      // First try to get from local storage for immediate display
       const localUserData = await AuthService.getUserData();
       console.log('📱 Local user data:', localUserData);
       
@@ -72,11 +122,9 @@ const ProfileScreen = () => {
         setProfileData(localUserData);
       }
 
-      // Get user ID - try multiple methods
       let userId = await AuthService.getUserId();
       console.log('👤 User ID from AuthService:', userId);
 
-      // If AuthService doesn't work, try to extract from localUserData
       if (!userId && localUserData) {
         userId = localUserData._id || localUserData.id;
         console.log('👤 User ID from local data:', userId);
@@ -87,13 +135,11 @@ const ProfileScreen = () => {
         const response = await ApiService.get(`/farmer/${userId}`);
         console.log('✅ Profile API response:', response);
         
-        // Handle different response structures
         const farmerData = response?.farmer || response?.data || response;
         
         if (farmerData) {
           console.log('✅ Profile data loaded:', farmerData);
           setProfileData(farmerData);
-          // Update local storage with fresh data
           await AsyncStorage.setItem('userData', JSON.stringify(farmerData));
         } else {
           console.log('❌ No farmer data in response');
@@ -103,7 +149,6 @@ const ProfileScreen = () => {
       }
     } catch (error) {
       console.log('❌ Error loading profile data:', error);
-      // Use local data if API fails
       if (!profileData) {
         const localData = await AuthService.getUserData();
         if (localData) {
@@ -117,10 +162,8 @@ const ProfileScreen = () => {
     try {
       console.log('🌱 Fetching crops data...');
       
-      // Get user ID - try multiple methods
       let farmerId = await AuthService.getUserId();
       
-      // If AuthService doesn't work, try to extract from profileData or local storage
       if (!farmerId) {
         const localUserData = await AuthService.getUserData();
         farmerId = localUserData?._id || localUserData?.id;
@@ -138,24 +181,20 @@ const ProfileScreen = () => {
       const response = await ApiService.get(`/crop/by-farmer/${farmerId}`);
       console.log('✅ Crops API response structure:', Object.keys(response));
       
-      // Handle different response structures
       const cropsData = response?.crops || response?.data || response || [];
       
       if (Array.isArray(cropsData)) {
         console.log(`✅ Found ${cropsData.length} crops`);
         setTotalCrops(cropsData.length);
         
-        // Calculate total area safely
         const area = cropsData.reduce((total, crop) => {
           let areaValue = 0;
           
-          // Handle different area structures
           if (crop.area && typeof crop.area === 'object') {
             areaValue = crop.area.value || 0;
           } else if (crop.areaPlanted && typeof crop.areaPlanted === 'object') {
             areaValue = crop.areaPlanted.value || 0;
           } else if (typeof crop.area === 'string') {
-            // Handle string format like "25 acre"
             const match = crop.area.match(/(\d+\.?\d*)/);
             areaValue = match ? parseFloat(match[1]) : 0;
           }
@@ -173,7 +212,6 @@ const ProfileScreen = () => {
       }
     } catch (error) {
       console.log('❌ Error fetching crops data:', error);
-      // Set default values if API fails
       setTotalCrops(0);
       setTotalArea(0);
     }
@@ -273,12 +311,13 @@ const ProfileScreen = () => {
 
   const buildSettingsList = () => (
     <View className="bg-white rounded-2xl shadow-lg mb-8">
-      {/* Edit Profile Option */}
-      {/* <SettingTile
-        icon="create-outline"
-        title="Edit Profile"
-        onPress={() => navigation.navigate('EditProfile', { profileData })}
-      /> */}
+      {/* Language Selection Option - REPLACED Edit Profile */}
+      <SettingTile
+        icon="language"
+        title="Language"
+        subtitle={getLanguageDisplayName(selectedLanguage)}
+        onPress={showLanguageDialog}
+      />
       <View className="h-px bg-gray-100 mx-5" />
       
       <SettingTile
@@ -323,6 +362,93 @@ const ProfileScreen = () => {
       </View>
       {trailing || <Feather name="chevron-right" size={24} color="#9ca3af" />}
     </TouchableOpacity>
+  );
+
+  const LanguageSelectionModal = () => (
+    <Modal
+      visible={languageModalVisible}
+      transparent={true}
+      animationType="slide"
+      onRequestClose={() => setLanguageModalVisible(false)}
+    >
+      <View className="flex-1 justify-center items-center bg-black/50">
+        <View className="bg-white rounded-3xl w-11/12 max-w-md">
+          {/* Header */}
+          <View className="px-6 py-5 border-b border-gray-100">
+            <Text className="text-xl font-bold text-gray-800 text-center">
+              Select Language
+            </Text>
+          </View>
+          
+          {/* Language Options */}
+          <View className="p-4">
+            <TouchableOpacity 
+              className={`flex-row items-center p-4 rounded-2xl mb-3 ${
+                selectedLanguage === 'en' ? 'bg-green-50 border border-green-200' : 'bg-gray-50'
+              }`}
+              onPress={() => saveLanguage('en')}
+            >
+              <View className="w-10 h-10 bg-green-100 rounded-xl justify-center items-center mr-4">
+                <Text className="text-green-600 font-bold">EN</Text>
+              </View>
+              <View className="flex-1">
+                <Text className="text-lg font-semibold text-gray-800">English</Text>
+                <Text className="text-sm text-gray-500">English</Text>
+              </View>
+              {selectedLanguage === 'en' && (
+                <Ionicons name="checkmark-circle" size={24} color="#16a34a" />
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              className={`flex-row items-center p-4 rounded-2xl mb-3 ${
+                selectedLanguage === 'hi' ? 'bg-green-50 border border-green-200' : 'bg-gray-50'
+              }`}
+              onPress={() => saveLanguage('hi')}
+            >
+              <View className="w-10 h-10 bg-green-100 rounded-xl justify-center items-center mr-4">
+                <Text className="text-green-600 font-bold">HI</Text>
+              </View>
+              <View className="flex-1">
+                <Text className="text-lg font-semibold text-gray-800">हिन्दी</Text>
+                <Text className="text-sm text-gray-500">Hindi</Text>
+              </View>
+              {selectedLanguage === 'hi' && (
+                <Ionicons name="checkmark-circle" size={24} color="#16a34a" />
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              className={`flex-row items-center p-4 rounded-2xl ${
+                selectedLanguage === 'mr' ? 'bg-green-50 border border-green-200' : 'bg-gray-50'
+              }`}
+              onPress={() => saveLanguage('mr')}
+            >
+              <View className="w-10 h-10 bg-green-100 rounded-xl justify-center items-center mr-4">
+                <Text className="text-green-600 font-bold">MR</Text>
+              </View>
+              <View className="flex-1">
+                <Text className="text-lg font-semibold text-gray-800">मराठी</Text>
+                <Text className="text-sm text-gray-500">Marathi</Text>
+              </View>
+              {selectedLanguage === 'mr' && (
+                <Ionicons name="checkmark-circle" size={24} color="#16a34a" />
+              )}
+            </TouchableOpacity>
+          </View>
+          
+          {/* Cancel Button */}
+          <TouchableOpacity 
+            className="p-4 border-t border-gray-100"
+            onPress={() => setLanguageModalVisible(false)}
+          >
+            <Text className="text-center text-gray-600 text-lg font-semibold">
+              Cancel
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
   );
 
   const handleLogout = () => {
@@ -395,11 +521,14 @@ const ProfileScreen = () => {
         {__DEV__ && (
           <View className="mx-4 mb-6 bg-gray-100 rounded-2xl p-4">
             <Text className="text-gray-600 text-xs font-mono">
-              Debug: Crops: {totalCrops}, Area: {totalArea}
+              Debug: Crops: {totalCrops}, Area: {totalArea}, Language: {selectedLanguage}
             </Text>
           </View>
         )}
       </ScrollView>
+
+      {/* Language Selection Modal */}
+      <LanguageSelectionModal />
     </Animated.View>
   );
 };

@@ -330,11 +330,11 @@ export default function MyCropsScreen() {
   return (
     <View className="flex-1 bg-green-50">
       {/* Header with User Info */}
-      <View className="bg-green-600 px-4 pt-12 pb-4">
+      <View className="px-4 pb-1">
         <View className="flex-row items-center justify-between">
           <View>
-            <Text className="text-white text-2xl font-bold">My Crops</Text>
-            <Text className="text-white/80 text-sm mt-1">
+            <Text className="text-green text-2xl pt-2 font-bold">My Crops</Text>
+            <Text className="text-green/80 text-sm mt-1">
               {getUserDisplayName()}
             </Text>
             <Text className="text-white/60 text-xs mt-1">
@@ -348,22 +348,22 @@ export default function MyCropsScreen() {
       </View>
 
       {/* Network Status Banner */}
-      {networkError && (
+      {/* {networkError && (
         <View className="mx-4 mt-4 bg-yellow-500 rounded-xl p-3">
           <Text className="text-white text-center font-medium">
             📡 Connection Issue - Using Local Data
           </Text>
         </View>
-      )}
+      )} */}
 
       {/* Debug Info - Remove in production */}
-      {__DEV__ && (
+      {/* {__DEV__ && (
         <View className="mx-4 mt-2 bg-blue-500 rounded-xl p-2">
           <Text className="text-white text-center text-xs">
             User ID: {userData?._id || 'Not found'} | Crops: {crops.length}
           </Text>
         </View>
-      )}
+      )} */}
 
       {/* Crops List */}
       <ScrollView 
@@ -409,7 +409,7 @@ export default function MyCropsScreen() {
 
         {/* Info Card for New Users */}
         {crops.length > 0 && (
-          <View className="bg-blue-50 rounded-2xl p-4 mt-4 border border-blue-200">
+          <View className="bg-blue-50 rounded-2xl p-4 mt-4 mb-9 border border-blue-200">
             <View className="flex-row items-center mb-2">
               <Ionicons name="information-circle" size={20} color="#2563eb" />
               <Text className="text-blue-800 font-semibold ml-2">Crop Management</Text>
