@@ -24,6 +24,12 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import ApiService from '../../services/ApiService';
 import AuthService from '../../services/AuthService';
 
+// =============================================================================
+// CLOUDINARY CONFIGURATION - UPDATE THESE WITH YOUR CREDENTIALS
+// =============================================================================
+import { CLOUDINARY_CONFIG, API_CONFIG } from '../../config/env';
+// =============================================================================
+
 export default function CropDetailsScreen() {
   const navigation = useNavigation();
   const route = useRoute();
@@ -109,6 +115,91 @@ export default function CropDetailsScreen() {
     // NEW - YYYY-MM-DD format (ISO 8601)
     return `${year}-${month}-${day}`; // DD-MM-YYYY format
   };
+
+  // =============================================================================
+  // CLOUDINARY IMAGE UPLOAD FUNCTION
+  // =============================================================================
+  const uploadImageToCloudinary = async (imageUri) => {
+    try {
+      console.log('🔼 Starting Cloudinary upload for:', imageUri);
+      
+      // Create form data
+      const formData = new FormData();
+      formData.append('file', {
+        uri: imageUri,
+        type: 'image/jpeg',
+        name: 'upload.jpg',
+      });
+      formData.append('upload_preset', CLOUDINARY_CONFIG.uploadPreset);
+      formData.append('cloud_name', CLOUDINARY_CONFIG.cloudName);
+
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/image/upload`,
+        {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Cloudinary upload failed:', errorText);
+        throw new Error(`Image upload failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('✅ Cloudinary upload successful:', data.secure_url);
+      return data.secure_url; // Return the Cloudinary URL
+    } catch (error) {
+      console.error('❌ Cloudinary upload error:', error);
+      throw error;
+    }
+  };
+
+  // Function to upload all images to Cloudinary
+  const uploadImagesToCloudinary = async (imageUris) => {
+  console.log('📤 Starting upload of', imageUris.length, 'images to Cloudinary');
+  
+  const uploadedImageUrls = [];
+  const processedImages = new Set(); // Track processed images to avoid duplicates
+  
+  for (const imageUri of imageUris) {
+    // Skip if we've already processed this exact image
+    if (processedImages.has(imageUri)) {
+      console.log('🔄 Skipping duplicate image:', imageUri);
+      continue;
+    }
+    
+    processedImages.add(imageUri);
+
+    // Check if it's already a Cloudinary URL
+    if (imageUri.startsWith('https://res.cloudinary.com/')) {
+      console.log('✅ Image already uploaded to Cloudinary:', imageUri);
+      uploadedImageUrls.push(imageUri);
+    } else if (imageUri.startsWith('file://') || imageUri.startsWith('http')) {
+      // It's a local URI or other URL, need to upload to Cloudinary
+      console.log('🔼 Uploading image to Cloudinary:', imageUri);
+      try {
+        const cloudinaryUrl = await uploadImageToCloudinary(imageUri);
+        uploadedImageUrls.push(cloudinaryUrl);
+        console.log('✅ Image uploaded successfully');
+      } catch (error) {
+        console.error('❌ Failed to upload image:', imageUri, error);
+        throw new Error(`Failed to upload image: ${error.message}`);
+      }
+    } else {
+      console.warn('⚠️ Unknown image format:', imageUri);
+      uploadedImageUrls.push(imageUri);
+    }
+  }
+  
+  console.log('🎉 All images uploaded successfully. Total:', uploadedImageUrls.length);
+  return uploadedImageUrls;
+};
+  // =============================================================================
 
   // Date picker handler
   const openDatePicker = (field) => {
@@ -218,7 +309,7 @@ export default function CropDetailsScreen() {
     post: async (endpoint, data) => {
       try {
         const authToken = token || await AuthService.getAuthToken();
-        const API_BASE_URL = "http://192.168.1.17:1000/api";
+        const API_BASE_URL = API_CONFIG.baseUrl; // Use from env
         
         console.log('🌐 Making POST request to:', `${API_BASE_URL}${endpoint}`);
         console.log('📤 Request data:', JSON.stringify(data, null, 2));
@@ -262,7 +353,7 @@ export default function CropDetailsScreen() {
     patch: async (endpoint, data) => {
       try {
         const authToken = token || await AuthService.getAuthToken();
-        const API_BASE_URL = "http://192.168.1.17:1000/api";
+        const API_BASE_URL = API_CONFIG.baseUrl; // Use from env
         
         const response = await fetch(`${API_BASE_URL}${endpoint}`, {
           method: 'PATCH',
@@ -330,10 +421,17 @@ export default function CropDetailsScreen() {
 
       console.log('👤 User ID for crop operation:', currentUser._id);
 
+      // =============================================================================
+      // UPLOAD IMAGES TO CLOUDINARY BEFORE SAVING CROP DATA
+      // =============================================================================
+      console.log('📤 Starting Cloudinary image upload process...');
+      const uploadedImageUrls = await uploadImagesToCloudinary(formData.images);
+      console.log('✅ All images uploaded to Cloudinary:', uploadedImageUrls);
+      // =============================================================================
+
       // Prepare the submission data according to backend validation schema
       const submissionData = {
         name: formData.cropName.trim(),
-        // cropType: formData.cropType.trim() || undefined,
         area: {
           value: parseFloat(formData.area),
           unit: formData.areaUnit
@@ -348,8 +446,7 @@ export default function CropDetailsScreen() {
         previousCrop: formData.previousCrop.trim() || undefined,
         latitude: parseFloat(formData.latitude),
         longitude: parseFloat(formData.longitude),
-        images: formData.images,
-        // applicationStatus: "pending"
+        images: uploadedImageUrls, // Use the Cloudinary URLs instead of local URIs
       };
 
       // Clean up the data - remove undefined fields
@@ -376,7 +473,7 @@ export default function CropDetailsScreen() {
 
       console.log('✅ Crop operation successful response:', response);
 
-      if (response && (response.success || response.crop || response.data)) {
+      if (response && (response.success || response.crop || response.data || response.message?.includes('success'))) {
         const resultCrop = response.crop || response.data || response;
         
         Alert.alert(
@@ -426,6 +523,8 @@ export default function CropDetailsScreen() {
         errorMessage = 'Authentication failed. Please login again.';
       } else if (error.status === 500) {
         errorMessage = 'Server error. Please try again later.';
+      } else if (error.message.includes('Failed to upload image')) {
+        errorMessage = 'Failed to upload images to cloud storage. Please check your internet connection and try again.';
       }
       
       Alert.alert('Error', errorMessage);
